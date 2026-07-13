@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 const navigation = ["Dashboard", "Courses", "Certificates", "Teachers", "Leads"];
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:4000/api/v1";
+const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/v1" || "http://127.0.0.1:4000/api/v1";
 const TOKEN_STORAGE_KEY = "diginext-admin-token";
 
 async function request(path, { method = "GET", token, body } = {}) {
@@ -196,29 +196,29 @@ function LoginView({ onLogin, authError, isSubmitting }) {
 function DashboardView({ dashboard }) {
   const metrics = dashboard
     ? [
-        {
-          label: "New leads",
-          value: formatMetricValue(dashboard.leadsByStatus.find((item) => item.status === "NEW")?._count?._all || 0),
-          hint: "Current pipeline"
-        },
-        {
-          label: "Qualified",
-          value: formatMetricValue(
-            dashboard.leadsByStatus.find((item) => item.status === "QUALIFIED")?._count?._all || 0
-          ),
-          hint: "Needs follow-up"
-        },
-        {
-          label: "Published courses",
-          value: formatMetricValue(dashboard.publishedCourses || 0),
-          hint: "Live on the website"
-        },
-        {
-          label: "City setup",
-          value: "1",
-          hint: "Mumbai only"
-        }
-      ]
+      {
+        label: "New leads",
+        value: formatMetricValue(dashboard.leadsByStatus.find((item) => item.status === "NEW")?._count?._all || 0),
+        hint: "Current pipeline"
+      },
+      {
+        label: "Qualified",
+        value: formatMetricValue(
+          dashboard.leadsByStatus.find((item) => item.status === "QUALIFIED")?._count?._all || 0
+        ),
+        hint: "Needs follow-up"
+      },
+      {
+        label: "Published courses",
+        value: formatMetricValue(dashboard.publishedCourses || 0),
+        hint: "Live on the website"
+      },
+      {
+        label: "City setup",
+        value: "1",
+        hint: "Mumbai only"
+      }
+    ]
     : [];
 
   return (
@@ -876,9 +876,9 @@ export default function AdminPage() {
       status: course.status || "DRAFT",
       faqs: Array.isArray(course.faqs)
         ? course.faqs.map((faq) => ({
-            question: faq.question || "",
-            answer: faq.answer || ""
-          }))
+          question: faq.question || "",
+          answer: faq.answer || ""
+        }))
         : []
     });
   }
