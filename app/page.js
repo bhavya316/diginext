@@ -1006,6 +1006,15 @@ function MobileDock() {
 }
 
 export default function Page() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const router = useRouter();
   const [theme, setTheme] = useState("light");
   const [brand, setBrand] = useState(fallbackBrand);
@@ -1102,7 +1111,7 @@ export default function Page() {
   }
 
   return (
-    <main data-theme={theme}>
+    <main data-theme={theme} className={isScrolled ? "is-scrolled" : ""}>
       <Header brand={brand} theme={theme} onThemeToggle={() => setTheme((current) => (current === "light" ? "dark" : "light"))} />
       <Hero course={activeCourse} onOpenModal={(type, slug) => setModal({ type, slug })} />
       <AboutSection course={activeCourse} />

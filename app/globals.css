@@ -84,6 +84,7 @@ img {
   z-index: 30;
   background: var(--background);
   border-bottom: 1px solid var(--border-color);
+  transition: transform 0.3s ease;
 }
 
 .header-row,
@@ -842,10 +843,14 @@ img {
   }
 
   .header-row {
-    min-height: 60px;
+    min-height: 50px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
+  }
+
+  .is-scrolled .site-header {
+    transform: translateY(-100%);
   }
 
   .desktop-nav,
@@ -950,7 +955,16 @@ img {
     background: color-mix(in srgb, var(--card-bg) 88%, transparent);
     box-shadow: var(--shadow);
     backdrop-filter: blur(14px);
-    transform: translateX(-50%);
+    transform: translate(-50%, 150%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .is-scrolled .mobile-dock {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .mobile-dock a {
