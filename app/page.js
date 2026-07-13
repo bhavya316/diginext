@@ -265,7 +265,7 @@ function DashboardView({ dashboard }) {
   );
 }
 
-function CoursesView({ courses, draft, setDraft, onFileChange, onEdit, onSubmit, feedback, isSaving }) {
+function CoursesView({ courses, draft, setDraft, onFileChange, onEdit, onDelete, onSubmit, feedback, isSaving, isDeleting }) {
   return (
     <section className="workspace-grid">
       <article className="card">
@@ -431,12 +431,24 @@ function CoursesView({ courses, draft, setDraft, onFileChange, onEdit, onSubmit,
         <h2>Published and draft tracks</h2>
         <div className="list-stack">
           {courses.map((course) => (
-            <button key={course.id} type="button" className="list-card" onClick={() => onEdit(course)}>
-              <strong>{course.title}</strong>
-              <span>
-                {course.status} • {(course.faqs || []).length} FAQ{(course.faqs || []).length === 1 ? "" : "s"}
-              </span>
-            </button>
+            <div key={course.id} className="list-card certificate-list-card">
+              <button type="button" className="certificate-list-card__body" onClick={() => onEdit(course)}>
+                <div>
+                  <strong>{course.title}</strong>
+                  <span>
+                    {course.status} • {(course.faqs || []).length} FAQ{(course.faqs || []).length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </button>
+              <button
+                type="button"
+                className="danger-action"
+                onClick={() => onDelete(course)}
+                disabled={isDeleting === String(course.id)}
+              >
+                {isDeleting === String(course.id) ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           ))}
         </div>
       </article>
@@ -489,7 +501,7 @@ function LeadsView({ leads }) {
   );
 }
 
-function TeachersView({ teachers, draft, setDraft, onFileChange, onEdit, onSubmit, feedback, isSaving }) {
+function TeachersView({ teachers, draft, setDraft, onFileChange, onEdit, onDelete, onSubmit, feedback, isSaving, isDeleting }) {
   return (
     <section className="workspace-grid">
       <article className="card">
@@ -580,12 +592,33 @@ function TeachersView({ teachers, draft, setDraft, onFileChange, onEdit, onSubmi
         <h2>Current teacher set</h2>
         <div className="list-stack">
           {teachers.map((teacher) => (
-            <button key={teacher.id} type="button" className="list-card" onClick={() => onEdit(teacher)}>
-              <strong>{teacher.name}</strong>
-              <span>
-                Sort {teacher.sortOrder || 0} • {teacher.isVisible ? "Visible" : "Hidden"}
-              </span>
-            </button>
+            <div key={teacher.id} className="list-card certificate-list-card">
+              <button type="button" className="certificate-list-card__body" onClick={() => onEdit(teacher)}>
+                <div className="certificate-thumb-wrap">
+                  {teacher.photoUrl ? (
+                    <img src={teacher.photoUrl} alt={teacher.name} className="certificate-thumb" />
+                  ) : (
+                    <div className="certificate-thumb" style={{ display: "grid", placeItems: "center", fontWeight: "bold", background: "var(--surface-alt)", height: "100%" }}>
+                      {teacher.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <strong>{teacher.name}</strong>
+                  <span>
+                    Sort {teacher.sortOrder || 0} • {teacher.isVisible ? "Visible" : "Hidden"}
+                  </span>
+                </div>
+              </button>
+              <button
+                type="button"
+                className="danger-action"
+                onClick={() => onDelete(teacher)}
+                disabled={isDeleting === String(teacher.id)}
+              >
+                {isDeleting === String(teacher.id) ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           ))}
         </div>
       </article>
@@ -964,6 +997,58 @@ export default function AdminPage() {
     setSavingKey("");
   }
 
+  async function deleteCourseItem(course) {
+    if (!window.confirm(`Are you sure you want to delete course "${course.title}"?`)) {
+      return;
+    }
+    setSavingKey(`delete-course-${course.id}`);
+    setCourseFeedback(null);
+
+    const result = await request(`/courses/${course.id}`, {
+      method: "DELETE",
+      token
+    });
+
+    if (result.ok) {
+      if (courseDraft.id === String(course.id)) {
+        setCourseDraft(createEmptyCourse());
+        setCourseBrochureFile(null);
+      }
+      setCourseFeedback({ type: "success", message: "Course deleted." });
+      await loadAdminData(token);
+    } else {
+      setCourseFeedback({ type: "error", message: result.error });
+    }
+
+    setSavingKey("");
+  }
+
+  async function deleteTeacherItem(teacher) {
+    if (!window.confirm(`Are you sure you want to delete teacher "${teacher.name}"?`)) {
+      return;
+    }
+    setSavingKey(`delete-teacher-${teacher.id}`);
+    setTeacherFeedback(null);
+
+    const result = await request(`/teachers/${teacher.id}`, {
+      method: "DELETE",
+      token
+    });
+
+    if (result.ok) {
+      if (teacherDraft.id === String(teacher.id)) {
+        setTeacherDraft(createEmptyTeacher());
+        setTeacherImageFile(null);
+      }
+      setTeacherFeedback({ type: "success", message: "Teacher deleted." });
+      await loadAdminData(token);
+    } else {
+      setTeacherFeedback({ type: "error", message: result.error });
+    }
+
+    setSavingKey("");
+  }
+
   async function submitTeacher(event) {
     event.preventDefault();
     setSavingKey("teacher");
@@ -1072,9 +1157,11 @@ export default function AdminPage() {
               }));
             }}
             onEdit={editCourse}
+            onDelete={deleteCourseItem}
             onSubmit={submitCourse}
             feedback={courseFeedback}
             isSaving={savingKey === "course"}
+            isDeleting={savingKey.startsWith("delete-course-") ? savingKey.replace("delete-course-", "") : ""}
           />
         ) : null}
         {activeView === "Certificates" ? (
@@ -1110,9 +1197,11 @@ export default function AdminPage() {
               }));
             }}
             onEdit={editTeacher}
+            onDelete={deleteTeacherItem}
             onSubmit={submitTeacher}
             feedback={teacherFeedback}
             isSaving={savingKey === "teacher"}
+            isDeleting={savingKey.startsWith("delete-teacher-") ? savingKey.replace("delete-teacher-", "") : ""}
           />
         ) : null}
         {activeView === "Leads" ? <LeadsView leads={leads} /> : null}
