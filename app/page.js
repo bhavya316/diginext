@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:4000/api/v1";
+const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/vi" || "http://127.0.0.1:4000/api/v1";
 
 const fallbackBrand = {
   lightLogo: "/DigiNext-02.png",
@@ -579,18 +579,18 @@ function CertificatesSection({ certificates }) {
         <div className="certificate-grid">
           {certificates.length > 0
             ? certificates.map((certificate) => (
-                <div key={certificate.id} className="card certificate-card">
-                  <div className="certificate-media">
-                    <img src={certificate.imageUrl} alt={certificate.title} className="certificate-image" />
-                  </div>
-                  <h3>{certificate.title}</h3>
+              <div key={certificate.id} className="card certificate-card">
+                <div className="certificate-media">
+                  <img src={certificate.imageUrl} alt={certificate.title} className="certificate-image" />
                 </div>
-              ))
+                <h3>{certificate.title}</h3>
+              </div>
+            ))
             : Array.from({ length: 3 }, (_, index) => (
-                <div key={index} className="card certificate-card">
-                  <div className="certificate-placeholder">Certificate preview {index + 1}</div>
-                </div>
-              ))}
+              <div key={index} className="card certificate-card">
+                <div className="certificate-placeholder">Certificate preview {index + 1}</div>
+              </div>
+            ))}
         </div>
       </div>
     </section>
