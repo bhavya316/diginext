@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  CONTENT_ADMIN
+  SALES_ADMIN
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum LeadSource {
+  CALLBACK
+  ENROLL
+  CONTACT_FORM
+  WHATSAPP
+  MANUAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+  SPAM
+}
+
+model Admin {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @db.VarChar(120)
+  email         String    @unique @db.VarChar(190)
+  passwordHash  String    @db.VarChar(255)
+  role          AdminRole
+  isActive      Boolean   @default(true)
+  assignedLeads Lead[]
+  leadNotes     LeadNote[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model City {
+  id           BigInt        @id @default(autoincrement())
+  slug         String        @unique @db.VarChar(50)
+  name         String        @db.VarChar(80)
+  isActive     Boolean       @default(true)
+  sections     PageSection[]
+  courses      Course[]
+  faqs         FaqItem[]
+  tools        Tool[]
+  certificates Certificate[]
+  teachers     Teacher[]
+  leads        Lead[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model SiteSetting {
+  id        BigInt   @id @default(autoincrement())
+  key       String   @unique @db.VarChar(120)
+  valueJson Json
+  updatedAt DateTime @updatedAt
+}
+
+model PageSection {
+  id          BigInt        @id @default(autoincrement())
+  cityId      BigInt?
+  city        City?         @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  sectionKey  String        @db.VarChar(80)
+  title       String?       @db.VarChar(255)
+  subtitle    String?       @db.VarChar(255)
+  body        String?       @db.Text
+  contentJson Json?
+  sortOrder   Int           @default(0)
+  isVisible   Boolean       @default(true)
+  status      PublishStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([cityId, sectionKey, status, sortOrder])
+}
+
+model Course {
+  id               BigInt         @id @default(autoincrement())
+  cityId           BigInt
+  city             City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  title            String         @db.VarChar(150)
+  slug             String         @unique @db.VarChar(150)
+  shortDescription String?        @db.Text
+  durationText     String?        @db.VarChar(100)
+  deliveryMode     String?        @db.VarChar(100)
+  brochureUrl      String?        @db.VarChar(500)
+  sortOrder        Int            @default(0)
+  isFeatured       Boolean        @default(false)
+  status           PublishStatus  @default(DRAFT)
+  modules          CourseModule[]
+  faqs             FaqItem[]
+  leads            Lead[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([cityId, status, sortOrder])
+}
+
+model CourseModule {
+  id          BigInt  @id @default(autoincrement())
+  courseId    BigInt
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String  @db.VarChar(150)
+  description String? @db.Text
+  sortOrder   Int     @default(0)
+
+  @@index([courseId, sortOrder])
+}
+
+model FaqItem {
+  id        BigInt        @id @default(autoincrement())
+  cityId    BigInt?
+  city      City?         @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  courseId  BigInt?
+  course    Course?       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  question  String        @db.VarChar(255)
+  answer    String        @db.Text
+  sortOrder Int           @default(0)
+  status    PublishStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([cityId, status, sortOrder])
+  @@index([courseId, status, sortOrder])
+}
+
+model Tool {
+  id        BigInt   @id @default(autoincrement())
+  cityId    BigInt?
+  city      City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  name      String   @db.VarChar(100)
+  iconUrl   String   @db.VarChar(500)
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cityId, sortOrder])
+}
+
+model Certificate {
+  id        BigInt   @id @default(autoincrement())
+  cityId    BigInt?
+  city      City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  title     String   @db.VarChar(150)
+  imageUrl  String   @db.VarChar(500)
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cityId, sortOrder])
+}
+
+model Teacher {
+  id               BigInt   @id @default(autoincrement())
+  cityId           BigInt?
+  city             City?    @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  name             String   @db.VarChar(150)
+  photoUrl         String?  @db.VarChar(500)
+  linkedinUrl      String?  @db.VarChar(500)
+  employmentStatus String?  @db.VarChar(190)
+  credentials      String?  @db.Text
+  sortOrder        Int      @default(0)
+  isVisible        Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([cityId, sortOrder])
+}
+
+model Lead {
+  id              BigInt      @id @default(autoincrement())
+  cityId          BigInt?
+  city            City?       @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  courseId        BigInt?
+  course          Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  source          LeadSource
+  name            String      @db.VarChar(120)
+  email           String?     @db.VarChar(190)
+  phone           String      @db.VarChar(30)
+  originLocation  String?     @db.VarChar(120)
+  interest        String?     @db.VarChar(150)
+  requestedAsset  String?     @db.VarChar(30)
+  brochureUrl     String?     @db.VarChar(500)
+  message         String?     @db.Text
+  status          LeadStatus  @default(NEW)
+  assignedAdminId BigInt?
+  assignedAdmin   Admin?      @relation(fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  notes           LeadNote[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([cityId, status, createdAt])
+  @@index([courseId])
+  @@index([assignedAdminId])
+}
+
+model LeadNote {
+  id        BigInt   @id @default(autoincrement())
+  leadId    BigInt
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  adminId   BigInt
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  note      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
