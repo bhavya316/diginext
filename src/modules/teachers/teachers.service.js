@@ -63,3 +63,9 @@ export async function updateTeacher(id, payload) {
     select: teacherSelect
   });
 }
+
+export async function deleteTeacher(id) {
+  return prisma.teacher.delete({
+    where: { id }
+  });
+}

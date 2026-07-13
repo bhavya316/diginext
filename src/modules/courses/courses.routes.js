@@ -3,7 +3,7 @@ import { ZodError } from "zod";
 import { requireAuth } from "../../middleware/auth.js";
 import { asyncHandler } from "../../utils/async-handler.js";
 import { createCourseSchema, listCoursesQuerySchema, updateCourseSchema } from "./courses.schema.js";
-import { createCourse, listCourses, updateCourse } from "./courses.service.js";
+import { createCourse, deleteCourse, listCourses, updateCourse } from "./courses.service.js";
 
 export const coursesRouter = Router();
 
@@ -66,3 +66,17 @@ coursesRouter.put(
     }
   })
 );
+
+coursesRouter.delete(
+  "/:id",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const id = BigInt(req.params.id);
+    await deleteCourse(id);
+
+    res.json({
+      ok: true
+    });
+  })
+);
+

@@ -113,3 +113,10 @@ export async function updateCourse(id, payload) {
     select: courseSelect
   });
 }
+
+export async function deleteCourse(id) {
+  return prisma.course.delete({
+    where: { id }
+  });
+}
+
