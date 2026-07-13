@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/vi" || "http://127.0.0.1:4000/api/v1";
+const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/v1" || "http://127.0.0.1:4000/api/v1";
 
 const fallbackBrand = {
   lightLogo: "/DigiNext-02.png",
