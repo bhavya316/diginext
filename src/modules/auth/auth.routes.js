@@ -66,3 +66,30 @@ authRouter.get(
     });
   })
 );
+
+authRouter.put(
+  "/password",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    try {
+      const { newPassword } = req.body;
+      if (!newPassword || newPassword.length < 6) {
+        const error = new Error("Password must be at least 6 characters long");
+        error.statusCode = 400;
+        throw error;
+      }
+      
+      const { hashPassword } = await import("../../utils/auth.js");
+      const passwordHash = hashPassword(newPassword);
+      
+      await prisma.admin.update({
+        where: { id: req.admin.id },
+        data: { passwordHash }
+      });
+      
+      res.json({ ok: true, message: "Password updated successfully" });
+    } catch (error) {
+      throw error;
+    }
+  })
+);
