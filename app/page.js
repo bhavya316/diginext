@@ -580,8 +580,8 @@ function normalizeCertificates(items) {
   }));
 }
 
-function Header({ brand, theme, onThemeToggle }) {
-  const logo = theme === "dark" ? brand.darkLogo || fallbackBrand.darkLogo : brand.lightLogo || fallbackBrand.lightLogo;
+function Header({ brand }) {
+  const logo = brand.darkLogo || fallbackBrand.darkLogo;
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -627,17 +627,11 @@ function Header({ brand, theme, onThemeToggle }) {
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="header-actions">
-            <button type="button" className="theme-toggle" onClick={onThemeToggle} aria-label="Toggle theme">
-              {theme === "dark" ? "Light" : "Dark"}
-            </button>
             <a href="#contact" className="contact-link">
               Contact
             </a>
           </div>
           <div className="mobile-theme-slot">
-            <button type="button" className="theme-toggle" onClick={onThemeToggle} aria-label="Toggle theme">
-              {theme === "dark" ? "Light" : "Dark"}
-            </button>
           </div>
         </div>
         <nav className="mobile-nav" aria-label="Mobile navigation">
@@ -1034,6 +1028,23 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
   const episodes = Array.isArray(currentWeek.episodes) && currentWeek.episodes.length > 0 ? currentWeek.episodes : [{ title: "Overview", bullets: [] }];
   const currentEpisode = episodes[activeEpIndex] || episodes[0];
 
+  const allEpisodes = weeks.reduce((acc, week, wIdx) => {
+    const eps = Array.isArray(week.episodes) && week.episodes.length > 0 ? week.episodes : [{ title: "Overview", bullets: [] }];
+    eps.forEach((ep, epIdx) => {
+      acc.push({
+        ...ep,
+        weekNumber: week.weekNumber,
+        tag: week.tag,
+        wIdx,
+        epIdx,
+        globalIdx: acc.length
+      });
+    });
+    return acc;
+  }, []);
+
+  const activeGlobalIndex = allEpisodes.findIndex(ep => ep.wIdx === activeWeekIndex && ep.epIdx === activeEpIndex);
+
   const handleNextEpisode = () => {
     if (activeEpIndex < episodes.length - 1) {
       setActiveEpIndex(activeEpIndex + 1);
@@ -1109,122 +1120,140 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
           </button>
 
           <div
-            className="curriculum-card netflix-style-card"
-            onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
-            onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
-            onMouseDown={(e) => handleSwipeStart(e.clientX)}
-            onMouseUp={(e) => handleSwipeEnd(e.clientX)}
-            style={{ flex: 1, margin: 0, cursor: "grab", userSelect: "none", borderRadius: "16px", overflow: "hidden" }}
+            className="curriculum-slider-viewport"
+            style={{ flex: 1, margin: 0, borderRadius: "16px", overflow: "hidden", position: "relative" }}
           >
-            {/* Top Banner - Netflix Style */}
-            <div className="curriculum-banner" style={{ position: "relative" }}>
-              <div className="week-badge">
-                <div className="week-badge-label">WEEK</div>
-                <div className="week-badge-num">{currentWeek.weekNumber}</div>
-              </div>
-              <div className="banner-media" onClick={handlePlayClick} style={{ cursor: "pointer", position: "relative" }}>
-                <img
-                  src={currentEpisode.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
-                  alt={currentEpisode.title}
-                  className="banner-img"
-                />
-                
-                {/* Netflix Vignette Gradient */}
+            <div
+              className="curriculum-slider-track"
+              style={{
+                display: "flex",
+                width: "100%",
+                transition: "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                transform: `translateX(-${(activeGlobalIndex !== -1 ? activeGlobalIndex : 0) * 100}%)`
+              }}
+            >
+              {allEpisodes.map((ep, idx) => (
                 <div
-                  className="netflix-vignette"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-                    pointerEvents: "none"
-                  }}
-                />
-
-                {/* Netflix Style Series Tag */}
-                <div
-                  className="netflix-brand-tag"
-                  style={{
-                    position: "absolute",
-                    top: "16px",
-                    left: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: "rgba(0,0,0,0.75)",
-                    padding: "4px 10px",
-                    borderRadius: "4px",
-                    backdropFilter: "blur(4px)",
-                    borderLeft: "3px solid #e50914"
-                  }}
+                  key={idx}
+                  className="curriculum-card netflix-style-card"
+                  onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
+                  onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
+                  onMouseDown={(e) => handleSwipeStart(e.clientX)}
+                  onMouseUp={(e) => handleSwipeEnd(e.clientX)}
+                  style={{ flex: "0 0 100%", margin: 0, cursor: "grab", userSelect: "none", borderRadius: "16px", overflow: "hidden", boxSizing: "border-box" }}
                 >
-                  <span style={{ color: "#e50914", fontWeight: "900", fontSize: "0.9rem" }}>N</span>
-                  <span style={{ color: "#fff", fontSize: "0.75rem", fontWeight: "700", letterSpacing: "0.08em" }}>
-                    SERIES • EPISODE {currentEpisode.episodeNumber || activeEpIndex + 1}
-                  </span>
-                </div>
+                  {/* Top Banner - Netflix Style */}
+                  <div className="curriculum-banner" style={{ position: "relative" }}>
+                    <div className="week-badge">
+                      <div className="week-badge-label">WEEK</div>
+                      <div className="week-badge-num">{ep.weekNumber}</div>
+                    </div>
+                    <div className="banner-media" onClick={handlePlayClick} style={{ cursor: "pointer", position: "relative" }}>
+                      <img
+                        src={ep.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
+                        alt={ep.title}
+                        className="banner-img"
+                      />
 
-                {/* Netflix Play Button Overlay */}
-                <div className="play-button-overlay netflix-play-overlay" title="Play Episode to Open Lead Form">
-                  <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
+                      {/* Netflix Vignette Gradient */}
+                      <div
+                        className="netflix-vignette"
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)",
+                          pointerEvents: "none"
+                        }}
+                      />
 
-            {/* Bottom Info Box */}
-            <div className="curriculum-info">
-              <div className="curriculum-tag-pill">{currentWeek.tag}</div>
-              <h3 className="episode-title">
-                <span className="ep-prefix">EP:{currentEpisode.episodeNumber || activeEpIndex + 1}</span> {currentEpisode.title}
-              </h3>
+                      {/* Netflix Style Series Tag */}
+                      <div
+                        className="netflix-brand-tag"
+                        style={{
+                          position: "absolute",
+                          top: "16px",
+                          left: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          background: "rgba(0,0,0,0.75)",
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          backdropFilter: "blur(4px)",
+                          borderLeft: "3px solid #e50914"
+                        }}
+                      >
+                        <span style={{ color: "#e50914", fontWeight: "900", fontSize: "0.9rem" }}>N</span>
+                        <span style={{ color: "#fff", fontSize: "0.75rem", fontWeight: "700", letterSpacing: "0.08em" }}>
+                          SERIES • EPISODE {ep.episodeNumber || ep.epIdx + 1}
+                        </span>
+                      </div>
 
-              <div className="topics-grid">
-                {(currentEpisode.bullets || []).map((bullet, idx) => (
-                  <div key={idx} className="topic-item">
-                    <span className="topic-bullet">•</span>
-                    <span className="topic-text">{bullet}</span>
+                      {/* Netflix Play Button Overlay */}
+                      <div className="play-button-overlay netflix-play-overlay" title="Play Episode to Open Lead Form">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Netflix Style Play Action Bar */}
-              <div className="netflix-action-bar" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color, rgba(255,255,255,0.1))" }}>
-                <button
-                  type="button"
-                  className="netflix-play-btn"
-                  onClick={handlePlayClick}
-                  style={{
-                    background: "#e50914",
-                    color: "#ffffff",
-                    border: "none",
-                    padding: "10px 22px",
-                    borderRadius: "6px",
-                    fontWeight: "800",
-                    fontSize: "0.95rem",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: "0 4px 14px rgba(229, 9, 20, 0.4)",
-                    transition: "transform 0.2s ease, background 0.2s ease"
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  <span>Play Episode {currentEpisode.episodeNumber || activeEpIndex + 1}</span>
-                </button>
+                  {/* Bottom Info Box */}
+                  <div className="curriculum-info">
+                    <div className="curriculum-tag-pill">{ep.tag}</div>
+                    <h3 className="episode-title">
+                      <span className="ep-prefix">EP:{ep.episodeNumber || ep.epIdx + 1}</span> {ep.title}
+                    </h3>
 
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => onOpenModal && onOpenModal("BROCHURE")}
-                  style={{ padding: "10px 18px", fontSize: "0.9rem", fontWeight: "700", borderRadius: "6px" }}
-                >
-                  📄 Get Syllabus & Info
-                </button>
-              </div>
+                    <div className="topics-grid">
+                      {(ep.bullets || []).map((bullet, bIdx) => (
+                        <div key={bIdx} className="topic-item">
+                          <span className="topic-bullet">•</span>
+                          <span className="topic-text">{bullet}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Netflix Style Play Action Bar */}
+                    <div className="netflix-action-bar" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color, rgba(255,255,255,0.1))" }}>
+                      <button
+                        type="button"
+                        className="netflix-play-btn"
+                        onClick={handlePlayClick}
+                        style={{
+                          background: "#e50914",
+                          color: "#ffffff",
+                          border: "none",
+                          padding: "10px 22px",
+                          borderRadius: "6px",
+                          fontWeight: "800",
+                          fontSize: "0.95rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          boxShadow: "0 4px 14px rgba(229, 9, 20, 0.4)",
+                          transition: "transform 0.2s ease, background 0.2s ease"
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span>Play Episode {ep.episodeNumber || ep.epIdx + 1}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => onOpenModal && onOpenModal("BROCHURE")}
+                        style={{ padding: "10px 18px", fontSize: "0.9rem", fontWeight: "700", borderRadius: "6px" }}
+                      >
+                        📄 Get Syllabus & Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -1374,7 +1403,7 @@ function TechnologiesSection({ course }) {
     <section className="section technologies-section" id="technologies">
       <div className="shell">
         <div className="section-heading">
-          <h2>Technologies You Will Use</h2>
+          <h2>Tools You Will Use</h2>
           <div className="rule" />
         </div>
         <p className="section-subcopy">A quick view of the tools and platforms used across the {course.title} workflow.</p>
@@ -1402,7 +1431,7 @@ function TechnologiesSection({ course }) {
   );
 }
 
-function TeachersSection({ teachers }) {
+function TeachersSection() {
   return (
     <section id="teachers" className="section">
       <div className="shell">
@@ -1410,26 +1439,30 @@ function TeachersSection({ teachers }) {
           <h2>Teachers</h2>
           <div className="rule" />
         </div>
-        <div className="teacher-grid">
-          {teachers.length > 0 ? (
-            teachers.map((teacher) => (
-              <div key={teacher.id} className="card teacher-card">
-                <div className="teacher-media">
-                  {teacher.photoUrl ? <img src={teacher.photoUrl} alt={teacher.name} className="teacher-image" /> : <div className="teacher-placeholder">{teacher.name.charAt(0)}</div>}
-                </div>
-                <h3>{teacher.name}</h3>
-                {teacher.employmentStatus ? <p className="teacher-status">{teacher.employmentStatus}</p> : null}
-                {teacher.credentials ? <p className="teacher-copy">{teacher.credentials}</p> : null}
-                {teacher.linkedinUrl ? (
-                  <a href={teacher.linkedinUrl} target="_blank" rel="noreferrer" className="teacher-link">
-                    LinkedIn
-                  </a>
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <div className="card teacher-empty">Teacher profiles will appear here once they are added from admin.</div>
-          )}
+        <div 
+          className="teachers-carousel"
+          style={{
+            display: "flex",
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            gap: "24px",
+            paddingBottom: "24px",
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none"
+          }}
+        >
+          <style dangerouslySetInnerHTML={{__html: `
+            .teachers-carousel::-webkit-scrollbar {
+              display: none;
+            }
+          `}} />
+          <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
+            <img src="/teacher-mervin.jpg" alt="Mervin Agera" style={{ width: "100%", height: "auto", borderRadius: "12px", display: "block", margin: "0 auto" }} />
+          </div>
+          <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
+            <img src="/teacher-terrence.jpg" alt="Terrence D'Mello" style={{ width: "100%", height: "auto", borderRadius: "12px", display: "block", margin: "0 auto" }} />
+          </div>
         </div>
       </div>
     </section>
@@ -1605,27 +1638,53 @@ function ContactSection({ courses, onSubmitLead }) {
 
 function Footer({ brand }) {
   return (
-    <footer className="site-footer">
-      <div className="shell footer-grid">
-        <div>
-          <h4>Contact</h4>
-          <p>Email: {brand.supportEmail}</p>
-          <p>Phone: {brand.supportPhone}</p>
+    <footer className="site-footer" style={{ background: "#0a0a0a", color: "#f5f5f5", padding: "60px 0 40px", borderTop: "none" }}>
+      <div className="shell" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+
+        {/* Top Section */}
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", gap: "16px", fontSize: "14px", color: "#e5e5e5" }}>
+          <div style={{ fontWeight: "400" }}>future@dotlabs.design</div>
+          <a href="#about" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>About</a>
+          <a href="#contact" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Contact</a>
+          <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Terms & Conditions</a>
+          <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Privacy Policy</a>
+          <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Refund Policy</a>
+          <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Service Policy</a>
         </div>
-        <div>
-          <h4>Quick Links</h4>
-          <a href="#">Home</a>
-          <a href="#about">About</a>
-          <a href="#courses">Courses</a>
-          <a href="#contact">Contact</a>
+
+        {/* Divider */}
+        <div style={{ width: "100%", height: "1px", background: "rgba(255,255,255,0.1)", marginBottom: "32px" }}></div>
+
+        {/* Bottom Section */}
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "24px" }}>
+
+          {/* Socials */}
+          <div style={{ display: "flex", gap: "20px", flex: "1", minWidth: "150px" }}>
+            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+            </a>
+            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            </a>
+          </div>
+
+          {/* Center Text */}
+          <div style={{ flex: "2", textAlign: "center", fontSize: "14px", color: "#a3a3a3", lineHeight: "1.6", minWidth: "250px" }}>
+            With 🫶 from a Designer to the<br />Designers of Tomorrow
+          </div>
+
+          {/* Right Text */}
+          <div style={{ flex: "1", textAlign: "right", fontSize: "14px", color: "#a3a3a3", lineHeight: "1.6", minWidth: "250px" }}>
+            ©2025 dot labs UI/UX school of tomorrow.<br />
+            All Rights Reserved
+          </div>
+
         </div>
-        <div>
-          <h4>Social</h4>
-          <a href={`tel:${brand.supportPhone}`}>Call</a>
-          <a href={`mailto:${brand.supportEmail}`}>Email</a>
-        </div>
+
       </div>
-      <div className="shell footer-meta">© 2025 Diginext. All rights reserved.</div>
     </footer>
   );
 }
@@ -1652,7 +1711,6 @@ export default function Page() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   const router = useRouter();
-  const [theme, setTheme] = useState("dark");
   const [brand, setBrand] = useState(fallbackBrand);
   const [courses, setCourses] = useState(courseContent);
   const [certificates, setCertificates] = useState([]);
@@ -1669,22 +1727,12 @@ export default function Page() {
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
 
   useEffect(() => {
-    const savedTheme = typeof window !== "undefined" ? window.localStorage.getItem("diginext-theme-v2") : null;
-    const initialTheme = savedTheme === "light" ? "light" : "dark";
-    setTheme(initialTheme);
-  }, []);
-
-  useEffect(() => {
     if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", theme);
-      document.documentElement.style.colorScheme = theme;
-      document.body.setAttribute("data-theme", theme);
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.style.colorScheme = "dark";
+      document.body.setAttribute("data-theme", "dark");
     }
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("diginext-theme-v2", theme);
-    }
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -1763,8 +1811,8 @@ export default function Page() {
   }
 
   return (
-    <main data-theme={theme} className={isScrolled ? "is-scrolled" : ""}>
-      <Header brand={brand} theme={theme} onThemeToggle={() => setTheme((current) => (current === "light" ? "dark" : "light"))} />
+    <main data-theme="dark" className={isScrolled ? "is-scrolled" : ""}>
+      <Header brand={brand} />
       <Hero course={activeCourse} onOpenModal={(type, slug) => setModal({ type, slug })} />
       <VideoSection videoSettings={videoSettings} />
       <AboutSection course={activeCourse} />
