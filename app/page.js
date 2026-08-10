@@ -193,7 +193,13 @@ function LoginView({ onLogin, authError, isSubmitting }) {
   );
 }
 
-function DashboardView({ dashboard }) {
+function DashboardView({ dashboard, leads, videoSettings, onSaveVideoSettings, isSavingVideo, videoFeedback }) {
+  const [videoDraft, setVideoDraft] = useState(videoSettings || {});
+
+  useEffect(() => {
+    if (videoSettings) setVideoDraft(videoSettings);
+  }, [videoSettings]);
+
   const metrics = dashboard
     ? [
       {
@@ -243,24 +249,85 @@ function DashboardView({ dashboard }) {
 
       <section className="two-column">
         <article className="card">
+          <p className="eyebrow">Website Settings</p>
+          <h2>Homepage Video Player</h2>
+          <p className="field-note">
+            Configure the YouTube video link shown on the website right below the Hero section.
+          </p>
+
+          <form onSubmit={(e) => { e.preventDefault(); onSaveVideoSettings(videoDraft); }} className="stack-form" style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
+            <label style={{ display: "grid", gap: "6px" }}>
+              <strong>YouTube Video URL or ID</strong>
+              <input
+                type="text"
+                placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/..."
+                value={videoDraft.youtubeUrl || ""}
+                onChange={(e) => setVideoDraft((current) => ({ ...current, youtubeUrl: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+              />
+            </label>
+
+            {videoFeedback ? <p className={videoFeedback.ok ? "form-feedback" : "form-feedback error"}>{videoFeedback.message}</p> : null}
+
+            <div className="form-actions">
+              <button type="submit" className="primary-button" disabled={isSavingVideo}>
+                {isSavingVideo ? "Saving..." : "Save Video Link"}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <article className="card">
           <p className="eyebrow">Single-city setup</p>
           <h2>Mumbai-only content</h2>
           <ul className="section-list">
             <li>All website courses are treated as Mumbai courses.</li>
             <li>City selectors have been removed from admin forms.</li>
-            <li>The public website no longer shows city selection or labels.</li>
-          </ul>
-        </article>
-        <article className="card">
-          <p className="eyebrow">Workspace scope</p>
-          <h2>Current admin controls</h2>
-          <ul className="section-list">
-            <li>Course creation and updates</li>
-            <li>Certificate management</li>
-            <li>Teacher management and lead review</li>
+            <li>Leads are routed dynamically based on selected courses.</li>
           </ul>
         </article>
       </section>
+
+      <article className="card" style={{ marginTop: "24px" }}>
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Lead inbox</p>
+            <h2>Recent leads</h2>
+          </div>
+        </div>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>From</th>
+                <th>Source</th>
+                <th>Request</th>
+                <th>Course</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(leads || []).map((lead) => (
+                <tr key={lead.id}>
+                  <td>{lead.name}</td>
+                  <td>{lead.email || "—"}</td>
+                  <td>{lead.phone || "—"}</td>
+                  <td>{lead.originLocation || "—"}</td>
+                  <td>{lead.source?.replaceAll("_", " ")}</td>
+                  <td>{lead.requestedAsset || "—"}</td>
+                  <td>{lead.course?.title || lead.interest || "Unassigned"}</td>
+                  <td>
+                    <span className={`status-pill ${lead.status?.toLowerCase().replaceAll("_", "-")}`}>{lead.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
     </>
   );
 }
@@ -1105,49 +1172,122 @@ function CurriculumView({ curriculumSettings, onSaveCurriculumSettings, isSaving
 }
 
 function SettingsView({
-  videoSettings,
-  onSaveVideoSettings,
-  isSavingVideo,
-  videoFeedback
+  footerSettings,
+  onSaveFooterSettings,
+  isSavingFooter,
+  footerFeedback,
+  onUpdatePassword
 }) {
-  const [videoDraft, setVideoDraft] = useState(videoSettings);
+  const [footerDraft, setFooterDraft] = useState(footerSettings || { instagramUrl: "", facebookUrl: "", linkedinUrl: "" });
+  const [passwordDraft, setPasswordDraft] = useState("");
+  const [passwordFeedback, setPasswordFeedback] = useState(null);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
-    setVideoDraft(videoSettings);
-  }, [videoSettings]);
+    if (footerSettings) {
+      setFooterDraft(footerSettings);
+    }
+  }, [footerSettings]);
 
-  function handleVideoSubmit(e) {
+  function handleFooterSubmit(e) {
     e.preventDefault();
-    onSaveVideoSettings(videoDraft);
+    onSaveFooterSettings(footerDraft);
+  }
+
+  async function handlePasswordSubmit(e) {
+    e.preventDefault();
+    setPasswordFeedback(null);
+    setIsUpdatingPassword(true);
+    
+    const result = await onUpdatePassword(passwordDraft);
+    if (result.ok) {
+      setPasswordFeedback({ ok: true, message: "Password updated successfully!" });
+      setPasswordDraft("");
+    } else {
+      setPasswordFeedback({ ok: false, message: result.error || "Failed to update password." });
+    }
+    setIsUpdatingPassword(false);
   }
 
   return (
     <section className="view-grid" style={{ display: "grid", gap: "24px" }}>
-      {/* Homepage Video Settings */}
+      {/* Footer Social Settings */}
       <article className="card">
         <p className="eyebrow">Website Settings</p>
-        <h2>Homepage Video Player</h2>
+        <h2>Footer Social Media Links</h2>
         <p className="field-note">
-          Configure the YouTube video link shown on the website right below the Hero section.
+          Configure the social media URLs for the footer.
         </p>
 
-        <form onSubmit={handleVideoSubmit} className="stack-form" style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
+        <form onSubmit={handleFooterSubmit} className="stack-form" style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
           <label style={{ display: "grid", gap: "6px" }}>
-            <strong>YouTube Video URL or ID</strong>
+            <strong>Instagram URL</strong>
             <input
               type="text"
-              placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/..."
-              value={videoDraft.youtubeUrl || ""}
-              onChange={(e) => setVideoDraft((current) => ({ ...current, youtubeUrl: e.target.value }))}
+              placeholder="https://instagram.com/..."
+              value={footerDraft.instagramUrl || ""}
+              onChange={(e) => setFooterDraft((current) => ({ ...current, instagramUrl: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>Facebook URL</strong>
+            <input
+              type="text"
+              placeholder="https://facebook.com/..."
+              value={footerDraft.facebookUrl || ""}
+              onChange={(e) => setFooterDraft((current) => ({ ...current, facebookUrl: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>LinkedIn URL</strong>
+            <input
+              type="text"
+              placeholder="https://linkedin.com/..."
+              value={footerDraft.linkedinUrl || ""}
+              onChange={(e) => setFooterDraft((current) => ({ ...current, linkedinUrl: e.target.value }))}
               style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
             />
           </label>
 
-          {videoFeedback ? <p className={videoFeedback.ok ? "form-feedback" : "form-feedback error"}>{videoFeedback.message}</p> : null}
+          {footerFeedback ? <p className={footerFeedback.ok ? "form-feedback" : "form-feedback error"}>{footerFeedback.message}</p> : null}
 
           <div className="form-actions">
-            <button type="submit" className="primary-button" disabled={isSavingVideo}>
-              {isSavingVideo ? "Saving..." : "Save Video Link"}
+            <button type="submit" className="primary-button" disabled={isSavingFooter}>
+              {isSavingFooter ? "Saving..." : "Save Social Links"}
+            </button>
+          </div>
+        </form>
+      </article>
+
+      {/* Admin Password Change */}
+      <article className="card">
+        <p className="eyebrow">Admin Account</p>
+        <h2>Change Password</h2>
+        <p className="field-note">
+          Update your admin dashboard password.
+        </p>
+
+        <form onSubmit={handlePasswordSubmit} className="stack-form" style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>New Password</strong>
+            <input
+              type="password"
+              placeholder="Enter new password (min 6 chars)"
+              value={passwordDraft}
+              onChange={(e) => setPasswordDraft(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+              required
+              minLength={6}
+            />
+          </label>
+
+          {passwordFeedback ? <p className={passwordFeedback.ok ? "form-feedback" : "form-feedback error"}>{passwordFeedback.message}</p> : null}
+
+          <div className="form-actions">
+            <button type="submit" className="primary-button" disabled={isUpdatingPassword || !passwordDraft || passwordDraft.length < 6}>
+              {isUpdatingPassword ? "Updating..." : "Update Password"}
             </button>
           </div>
         </form>
@@ -1502,9 +1642,15 @@ export default function AdminPage() {
     title: "Experience Agency-Led Training at DigiNext",
     subtitle: "Watch how our students build real-world marketing campaigns inside a live agency environment."
   });
+  const [footerSettings, setFooterSettings] = useState({
+    instagramUrl: "",
+    facebookUrl: "",
+    linkedinUrl: ""
+  });
   const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculumSettings);
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
   const [settingsFeedback, setSettingsFeedback] = useState(null);
+  const [footerFeedback, setFooterFeedback] = useState(null);
   const [curriculumFeedback, setCurriculumFeedback] = useState(null);
   const [packageFeedback, setPackageFeedback] = useState(null);
   const [savingKey, setSavingKey] = useState("");
@@ -1551,6 +1697,9 @@ export default function AdminPage() {
       }, {});
       if (map.video_settings) {
         setVideoSettings((current) => ({ ...current, ...map.video_settings }));
+      }
+      if (map.footer_settings) {
+        setFooterSettings((current) => ({ ...current, ...map.footer_settings }));
       }
       if (map.curriculum_settings) {
         setCurriculumSettings(map.curriculum_settings);
@@ -1604,6 +1753,38 @@ export default function AdminPage() {
       setSettingsFeedback({ ok: false, message: result.error || "Failed to update video settings" });
     }
   }
+
+  async function saveFooterSettings(payload) {
+    setSavingKey("footer_settings");
+    setFooterFeedback(null);
+
+    const result = await request("/settings", {
+      method: "PUT",
+      token,
+      body: {
+        key: "footer_settings",
+        valueJson: payload
+      }
+    });
+
+    setSavingKey("");
+    if (result.ok) {
+      setFooterSettings(payload);
+      setFooterFeedback({ ok: true, message: "Footer links updated successfully!" });
+    } else {
+      setFooterFeedback({ ok: false, message: result.error || "Failed to update footer settings" });
+    }
+  }
+
+  async function updatePassword(newPassword) {
+    const result = await request("/auth/password", {
+      method: "PUT",
+      token,
+      body: { newPassword }
+    });
+    return result;
+  }
+
 
   async function saveCurriculumSettings(payload) {
     setSavingKey("curriculum_settings");
@@ -1960,7 +2141,7 @@ export default function AdminPage() {
     setTeacherFeedback(null);
   }
 
-  const navigation = ["Dashboard", "Courses", "Packages", "Teachers", "Leads", "Curriculum", "Settings"];
+  const navigation = ["Dashboard", "Packages", "Curriculum", "Settings"];
 
   if (booting) {
     return <main className="loading-shell">Loading admin workspace...</main>;
@@ -1992,25 +2173,14 @@ export default function AdminPage() {
       </aside>
 
       <section className="content">
-        {activeView === "Dashboard" ? <DashboardView dashboard={dashboard} /> : null}
-        {activeView === "Courses" ? (
-          <CoursesView
-            courses={courses}
-            draft={courseDraft}
-            setDraft={setCourseDraft}
-            onFileChange={(file) => {
-              setCourseBrochureFile(file);
-              setCourseDraft((current) => ({
-                ...current,
-                brochureName: file?.name || ""
-              }));
-            }}
-            onEdit={editCourse}
-            onDelete={deleteCourseItem}
-            onSubmit={submitCourse}
-            feedback={courseFeedback}
-            isSaving={savingKey === "course"}
-            isDeleting={savingKey.startsWith("delete-course-") ? savingKey.replace("delete-course-", "") : ""}
+        {activeView === "Dashboard" ? (
+          <DashboardView
+            dashboard={dashboard}
+            leads={leads}
+            videoSettings={videoSettings}
+            onSaveVideoSettings={saveVideoSettings}
+            isSavingVideo={savingKey === "video_settings"}
+            videoFeedback={settingsFeedback}
           />
         ) : null}
         {activeView === "Packages" ? (
@@ -2021,27 +2191,6 @@ export default function AdminPage() {
             packageFeedback={packageFeedback}
           />
         ) : null}
-        {activeView === "Teachers" ? (
-          <TeachersView
-            teachers={teachers}
-            draft={teacherDraft}
-            setDraft={setTeacherDraft}
-            onFileChange={(file) => {
-              setTeacherImageFile(file);
-              setTeacherDraft((current) => ({
-                ...current,
-                photoName: file?.name || ""
-              }));
-            }}
-            onEdit={editTeacher}
-            onDelete={deleteTeacherItem}
-            onSubmit={submitTeacher}
-            feedback={teacherFeedback}
-            isSaving={savingKey === "teacher"}
-            isDeleting={savingKey.startsWith("delete-teacher-") ? savingKey.replace("delete-teacher-", "") : ""}
-          />
-        ) : null}
-        {activeView === "Leads" ? <LeadsView leads={leads} /> : null}
         {activeView === "Curriculum" ? (
           <CurriculumView
             curriculumSettings={curriculumSettings}
@@ -2052,10 +2201,11 @@ export default function AdminPage() {
         ) : null}
         {activeView === "Settings" ? (
           <SettingsView
-            videoSettings={videoSettings}
-            onSaveVideoSettings={saveVideoSettings}
-            isSavingVideo={savingKey === "video_settings"}
-            videoFeedback={settingsFeedback}
+            footerSettings={footerSettings}
+            onSaveFooterSettings={saveFooterSettings}
+            isSavingFooter={savingKey === "footer_settings"}
+            footerFeedback={footerFeedback}
+            onUpdatePassword={updatePassword}
           />
         ) : null}
       </section>
