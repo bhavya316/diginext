@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const navigation = ["Dashboard", "Courses", "Certificates", "Teachers", "Leads"];
-const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/v1" || "http://127.0.0.1:4000/api/v1";
+const navigation = ["Dashboard", "Courses", "Certificates", "Teachers", "Leads", "Settings"];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api/v1";
 const TOKEN_STORAGE_KEY = "diginext-admin-token";
 
 async function request(path, { method = "GET", token, body } = {}) {
@@ -721,6 +721,760 @@ function CertificatesView({ certificates, draft, setDraft, onFileChange, onEdit,
   );
 }
 
+const defaultCurriculumSettings = {
+  title: "12 Weeks to Kickstart Your Digital Marketing Journey",
+  subtitle: "(Yes 12 weeks is all it will take)",
+  description:
+    "Step inside Digilligent and learn how a modern marketing agency operates. From client meetings and campaign planning to content production and performance marketing, you'll gain firsthand exposure to the people, processes, and projects that drive real business growth.",
+  weeks: [
+    {
+      weekNumber: 1,
+      tag: "ORIENTATION & FOUNDATIONS OF DIGITAL MARKETING",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "The Digital Playfield",
+          thumbnail: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Importance of Social Media & Digital Marketing",
+            "The Shift from Advertising to Storytelling",
+            "Soft Skills for Digital Marketer",
+            "Latest Trending Content Overview (Reels/Trends)",
+            "The Marketing Funnel Model (TOFU, MOFU, BOFU)"
+          ]
+        },
+        {
+          episodeNumber: 2,
+          title: "Agency Operations & Brief Breakdown",
+          thumbnail: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Deconstructing Client Briefs",
+            "Cross-Functional Team Collaboration",
+            "Content Strategy Frameworks",
+            "Sprint Planning & Project Deadlines"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 2,
+      tag: "BRAND STRATEGY & CUSTOMER AVATARS",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "Customer Avatars & Positioning",
+          thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Building Ideal Customer Profiles (ICPs)",
+            "Competitor Benchmarking & Intelligence",
+            "Value Proposition & Brand Positioning",
+            "Brand Tone of Voice Guidelines"
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+function CurriculumView({ curriculumSettings, onSaveCurriculumSettings, isSavingCurriculum, curriculumFeedback }) {
+  const [currDraft, setCurrDraft] = useState(curriculumSettings || defaultCurriculumSettings);
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
+
+  useEffect(() => {
+    if (curriculumSettings) {
+      setCurrDraft(curriculumSettings);
+    }
+  }, [curriculumSettings]);
+
+  function handleCurrSubmit(e) {
+    e.preventDefault();
+    onSaveCurriculumSettings(currDraft);
+  }
+
+  function handleFileUpload(wIdx, epIdx, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      updateEpisodeField(wIdx, epIdx, "thumbnail", evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addWeek() {
+    setCurrDraft((prev) => {
+      const nextNum = (prev.weeks?.length || 0) + 1;
+      const newWeeks = [
+        ...(prev.weeks || []),
+        {
+          weekNumber: nextNum,
+          tag: `WEEK ${nextNum} MODULE`,
+          episodes: [
+            {
+              episodeNumber: 1,
+              title: "New Episode Title",
+              thumbnail: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
+              bullets: ["Key Takeaway 1", "Key Takeaway 2"]
+            }
+          ]
+        }
+      ];
+      setSelectedWeekIdx(newWeeks.length - 1);
+      return { ...prev, weeks: newWeeks };
+    });
+  }
+
+  function removeWeek(wIdx) {
+    setCurrDraft((prev) => {
+      const updated = (prev.weeks || []).filter((_, idx) => idx !== wIdx).map((w, idx) => ({ ...w, weekNumber: idx + 1 }));
+      if (selectedWeekIdx >= updated.length) {
+        setSelectedWeekIdx(Math.max(0, updated.length - 1));
+      }
+      return { ...prev, weeks: updated };
+    });
+  }
+
+  function updateWeekTag(wIdx, newTag) {
+    setCurrDraft((prev) => {
+      const updated = [...(prev.weeks || [])];
+      updated[wIdx] = { ...updated[wIdx], tag: newTag };
+      return { ...prev, weeks: updated };
+    });
+  }
+
+  function addEpisode(wIdx) {
+    setCurrDraft((prev) => {
+      const updatedWeeks = [...(prev.weeks || [])];
+      const targetWeek = { ...updatedWeeks[wIdx] };
+      const nextEpNum = (targetWeek.episodes?.length || 0) + 1;
+      targetWeek.episodes = [
+        ...(targetWeek.episodes || []),
+        {
+          episodeNumber: nextEpNum,
+          title: "New Episode Title",
+          thumbnail: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
+          bullets: ["Lesson Topic 1", "Lesson Topic 2"]
+        }
+      ];
+      updatedWeeks[wIdx] = targetWeek;
+      return { ...prev, weeks: updatedWeeks };
+    });
+  }
+
+  function removeEpisode(wIdx, epIdx) {
+    setCurrDraft((prev) => {
+      const updatedWeeks = [...(prev.weeks || [])];
+      const targetWeek = { ...updatedWeeks[wIdx] };
+      targetWeek.episodes = (targetWeek.episodes || [])
+        .filter((_, idx) => idx !== epIdx)
+        .map((ep, idx) => ({ ...ep, episodeNumber: idx + 1 }));
+      updatedWeeks[wIdx] = targetWeek;
+      return { ...prev, weeks: updatedWeeks };
+    });
+  }
+
+  function updateEpisodeField(wIdx, epIdx, field, val) {
+    setCurrDraft((prev) => {
+      const updatedWeeks = [...(prev.weeks || [])];
+      const targetWeek = { ...updatedWeeks[wIdx] };
+      const updatedEps = [...(targetWeek.episodes || [])];
+      updatedEps[epIdx] = { ...updatedEps[epIdx], [field]: val };
+      targetWeek.episodes = updatedEps;
+      updatedWeeks[wIdx] = targetWeek;
+      return { ...prev, weeks: updatedWeeks };
+    });
+  }
+
+  const weeks = currDraft.weeks || [];
+  const currentWeek = weeks[selectedWeekIdx] || weeks[0];
+  const safeWeekIdx = Math.min(selectedWeekIdx, Math.max(0, weeks.length - 1));
+
+  return (
+    <article className="card" style={{ maxWidth: "1000px", margin: "0 auto" }}>
+      <p className="eyebrow">COURSE MANAGEMENT</p>
+      <h2>Landing Page Curriculum Manager</h2>
+      <p className="field-note">
+        Manage weeks, episodes, topics, and thumbnail images displayed in the interactive homepage carousel.
+      </p>
+
+      <form onSubmit={handleCurrSubmit} className="stack-form" style={{ display: "grid", gap: "20px", marginTop: "20px" }}>
+        {/* Section Metadata Header */}
+        <div style={{ display: "grid", gap: "12px", background: "var(--card-sub-bg, rgba(255,255,255,0.03))", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-color, #333)" }}>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>Section Title</strong>
+            <input
+              type="text"
+              value={currDraft.title || ""}
+              onChange={(e) => setCurrDraft((prev) => ({ ...prev, title: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>Section Subtitle</strong>
+            <input
+              type="text"
+              value={currDraft.subtitle || ""}
+              onChange={(e) => setCurrDraft((prev) => ({ ...prev, subtitle: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>Section Description</strong>
+            <textarea
+              rows={2}
+              value={currDraft.description || ""}
+              onChange={(e) => setCurrDraft((prev) => ({ ...prev, description: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+        </div>
+
+        {/* Week Selector Dropdown & Quick Navigation Bar */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", background: "rgba(248, 156, 28, 0.06)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(248, 156, 28, 0.3)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <strong style={{ fontSize: "1.05rem", color: "#f89c1c" }}>Select Week to Edit:</strong>
+            <select
+              value={safeWeekIdx}
+              onChange={(e) => setSelectedWeekIdx(Number(e.target.value))}
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                background: "var(--card-bg, #1a1a1a)",
+                color: "var(--foreground, #ffffff)",
+                border: "1.5px solid #f89c1c",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                cursor: "pointer",
+                outline: "none"
+              }}
+            >
+              {weeks.map((w, idx) => (
+                <option key={idx} value={idx}>
+                  Week {w.weekNumber} - {w.tag || `Module ${w.weekNumber}`} ({w.episodes?.length || 0} Episodes)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button type="button" className="ghost-button" onClick={addWeek} style={{ color: "#f89c1c", borderColor: "#f89c1c", fontWeight: "bold" }}>
+            + Add New Week
+          </button>
+        </div>
+
+        {/* Currently Selected Week Card */}
+        {currentWeek && (
+          <div
+            style={{
+              padding: "20px",
+              borderRadius: "14px",
+              border: "1px solid var(--border-color, #e2e8f0)",
+              background: "rgba(255,255,255,0.02)",
+              display: "grid",
+              gap: "16px"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <strong style={{ fontSize: "1.2rem", color: "#f89c1c" }}>Editing Week {currentWeek.weekNumber}</strong>
+              {weeks.length > 1 && (
+                <button
+                  type="button"
+                  style={{ color: "#ef4444", background: "none", border: "1px solid #ef4444", borderRadius: "6px", padding: "4px 12px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold" }}
+                  onClick={() => removeWeek(safeWeekIdx)}
+                >
+                  Delete Week {currentWeek.weekNumber}
+                </button>
+              )}
+            </div>
+
+            <label style={{ display: "grid", gap: "6px" }}>
+              <span className="field-note" style={{ fontWeight: "bold" }}>Module Tag / Title</span>
+              <input
+                type="text"
+                value={currentWeek.tag || ""}
+                onChange={(e) => updateWeekTag(safeWeekIdx, e.target.value)}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid #ccc" }}
+              />
+            </label>
+
+            {/* Episodes inside Active Week */}
+            <div style={{ display: "grid", gap: "16px", paddingLeft: "14px", borderLeft: "4px solid #f89c1c" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "1.05rem", fontWeight: "bold" }}>Episodes ({currentWeek.episodes?.length || 0})</span>
+                <button
+                  type="button"
+                  style={{ fontSize: "0.85rem", background: "#f89c1c", color: "#fff", border: "none", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+                  onClick={() => addEpisode(safeWeekIdx)}
+                >
+                  + Add Episode
+                </button>
+              </div>
+
+              {(currentWeek.episodes || []).map((ep, epIdx) => (
+                <div key={epIdx} style={{ display: "grid", gap: "14px", padding: "18px", borderRadius: "12px", background: "var(--card-bg, #ffffff)", border: "1px solid var(--border-color, #e2e8f0)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.95rem", fontWeight: "bold", color: "#f89c1c" }}>Episode {ep.episodeNumber || epIdx + 1}</span>
+                    {(currentWeek.episodes || []).length > 1 && (
+                      <button
+                        type="button"
+                        style={{ color: "#ef4444", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold" }}
+                        onClick={() => removeEpisode(safeWeekIdx, epIdx)}
+                      >
+                        Remove Episode
+                      </button>
+                    )}
+                  </div>
+
+                  <label style={{ display: "grid", gap: "4px" }}>
+                    <span className="field-note">Episode Title</span>
+                    <input
+                      type="text"
+                      placeholder="Episode Title"
+                      value={ep.title || ""}
+                      onChange={(e) => updateEpisodeField(safeWeekIdx, epIdx, "title", e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                    />
+                  </label>
+
+                  {/* Clean Image Upload & Live Preview */}
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    <span className="field-note" style={{ fontWeight: "bold" }}>Thumbnail Image</span>
+                    
+                    <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
+                      {/* Live Image Preview Thumbnail */}
+                      <div style={{ width: "110px", height: "65px", borderRadius: "8px", overflow: "hidden", background: "#000", border: "1px solid #444", flexShrink: 0 }}>
+                        <img
+                          src={ep.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
+                          alt="Preview"
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: "240px", display: "grid", gap: "8px" }}>
+                        {/* File Upload Button */}
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <label className="secondary-button" style={{ cursor: "pointer", padding: "8px 14px", fontSize: "0.88rem", margin: 0, fontWeight: "bold" }}>
+                            📁 Upload Image File
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: "none" }}
+                              onChange={(e) => handleFileUpload(safeWeekIdx, epIdx, e.target.files[0])}
+                            />
+                          </label>
+                        </div>
+
+                        {/* Direct Image URL Input */}
+                        <input
+                          type="text"
+                          placeholder="Or enter image URL (https://...)"
+                          value={ep.thumbnail || ""}
+                          onChange={(e) => updateEpisodeField(safeWeekIdx, epIdx, "thumbnail", e.target.value)}
+                          style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "0.85rem" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <label style={{ display: "grid", gap: "4px" }}>
+                    <span className="field-note">Topics / Bullet Points (One per line)</span>
+                    <textarea
+                      rows={3}
+                      placeholder="Topics (One per line)"
+                      value={Array.isArray(ep.bullets) ? ep.bullets.join("\n") : ep.bullets || ""}
+                      onChange={(e) => updateEpisodeField(safeWeekIdx, epIdx, "bullets", e.target.value.split("\n"))}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {curriculumFeedback ? <p className={curriculumFeedback.ok ? "form-feedback" : "form-feedback error"}>{curriculumFeedback.message}</p> : null}
+
+        <div className="form-actions" style={{ marginTop: "16px" }}>
+          <button type="submit" className="primary-button" disabled={isSavingCurriculum} style={{ padding: "12px 28px", fontSize: "1rem" }}>
+            {isSavingCurriculum ? "Saving Curriculum..." : "Save Curriculum Changes"}
+          </button>
+        </div>
+      </form>
+    </article>
+  );
+}
+
+function SettingsView({
+  videoSettings,
+  onSaveVideoSettings,
+  isSavingVideo,
+  videoFeedback
+}) {
+  const [videoDraft, setVideoDraft] = useState(videoSettings);
+
+  useEffect(() => {
+    setVideoDraft(videoSettings);
+  }, [videoSettings]);
+
+  function handleVideoSubmit(e) {
+    e.preventDefault();
+    onSaveVideoSettings(videoDraft);
+  }
+
+  return (
+    <section className="view-grid" style={{ display: "grid", gap: "24px" }}>
+      {/* Homepage Video Settings */}
+      <article className="card">
+        <p className="eyebrow">Website Settings</p>
+        <h2>Homepage Video Player</h2>
+        <p className="field-note">
+          Configure the YouTube video link shown on the website right below the Hero section.
+        </p>
+
+        <form onSubmit={handleVideoSubmit} className="stack-form" style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>YouTube Video URL or ID</strong>
+            <input
+              type="text"
+              placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/..."
+              value={videoDraft.youtubeUrl || ""}
+              onChange={(e) => setVideoDraft((current) => ({ ...current, youtubeUrl: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+
+          {videoFeedback ? <p className={videoFeedback.ok ? "form-feedback" : "form-feedback error"}>{videoFeedback.message}</p> : null}
+
+          <div className="form-actions">
+            <button type="submit" className="primary-button" disabled={isSavingVideo}>
+              {isSavingVideo ? "Saving..." : "Save Video Link"}
+            </button>
+          </div>
+        </form>
+      </article>
+    </section>
+  );
+}
+
+const defaultPackageSettings = {
+  title: "What will these 6 Months Cost?",
+  packages: [
+    {
+      id: "founders-plan",
+      badge: "Founder's Advantage Plan",
+      subtitle: "Best Value - One Time Payment",
+      originalPrice: "₹ 82,515*",
+      taxNote: "+ 18% GST",
+      highlightBannerTitle: "Exclusive Benefits for the Founding Cohort",
+      highlightBannerText: "Save more with Founder Scholarship and Upfront Payment Benefits.",
+      feeBreakdown: [
+        { label: "Professional Certification Program", amount: "₹82,515", isDiscount: false },
+        { label: "Founder's Scholarship", amount: "- ₹12,515", isDiscount: true },
+        { label: "Upfront Payment Benefit", amount: "- ₹5,000", isDiscount: false }
+      ],
+      totalEffectiveFee: "₹65,000*",
+      totalPayable: "₹65,000*",
+      totalPayableNote: "Inclusive of 18% GST",
+      ctaText: "APPLY NOW --->"
+    },
+    {
+      id: "flexible-plan",
+      badge: "Flexible Learning Plan",
+      subtitle: "3-Phase Payment",
+      originalPrice: "₹ 82,515*",
+      taxNote: "+ 18% GST",
+      highlightBannerTitle: "Flexible Payments. Same Learning Experience.",
+      highlightBannerText: "Spread your payments across three phases without missing out on the complete DigiNext journey.",
+      feeBreakdown: [
+        { label: "Professional Certification Program", amount: "₹82,515", isDiscount: false },
+        { label: "Founder's Scholarship", amount: "- ₹10,515", isDiscount: true },
+        { label: "Upfront Payment Benefit", amount: "- ₹5,000", isDiscount: false },
+        { label: "EMI Processing Fees", amount: "- ₹2,000", isDiscount: false }
+      ],
+      totalEffectiveFee: "₹74,000*",
+      totalPayable: "₹74,000*",
+      totalPayableNote: "Inclusive of 18% GST",
+      ctaText: "APPLY NOW --->"
+    }
+  ]
+};
+
+function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage, packageFeedback }) {
+  const [pkgDraft, setPkgDraft] = useState(packageSettings || defaultPackageSettings);
+  const [selectedPkgIdx, setSelectedPkgIdx] = useState(0);
+
+  useEffect(() => {
+    if (packageSettings) {
+      setPkgDraft(packageSettings);
+    }
+  }, [packageSettings]);
+
+  function handlePkgSubmit(e) {
+    e.preventDefault();
+    onSavePackageSettings(pkgDraft);
+  }
+
+  const packages = Array.isArray(pkgDraft.packages) ? pkgDraft.packages : defaultPackageSettings.packages;
+  const currentPkg = packages[selectedPkgIdx] || packages[0] || {};
+
+  function updatePkgField(field, value) {
+    setPkgDraft((prev) => {
+      const nextPkgs = [...(prev.packages || [])];
+      nextPkgs[selectedPkgIdx] = {
+        ...nextPkgs[selectedPkgIdx],
+        [field]: value
+      };
+      return { ...prev, packages: nextPkgs };
+    });
+  }
+
+  function updateBreakdownItem(itemIdx, field, value) {
+    setPkgDraft((prev) => {
+      const nextPkgs = [...(prev.packages || [])];
+      const curBreakdown = [...(nextPkgs[selectedPkgIdx]?.feeBreakdown || [])];
+      curBreakdown[itemIdx] = {
+        ...curBreakdown[itemIdx],
+        [field]: value
+      };
+      nextPkgs[selectedPkgIdx] = {
+        ...nextPkgs[selectedPkgIdx],
+        feeBreakdown: curBreakdown
+      };
+      return { ...prev, packages: nextPkgs };
+    });
+  }
+
+  function addBreakdownItem() {
+    setPkgDraft((prev) => {
+      const nextPkgs = [...(prev.packages || [])];
+      const curBreakdown = [...(nextPkgs[selectedPkgIdx]?.feeBreakdown || [])];
+      curBreakdown.push({ label: "Special Discount", amount: "- ₹1,000", isDiscount: true });
+      nextPkgs[selectedPkgIdx] = {
+        ...nextPkgs[selectedPkgIdx],
+        feeBreakdown: curBreakdown
+      };
+      return { ...prev, packages: nextPkgs };
+    });
+  }
+
+  function removeBreakdownItem(itemIdx) {
+    setPkgDraft((prev) => {
+      const nextPkgs = [...(prev.packages || [])];
+      const curBreakdown = (nextPkgs[selectedPkgIdx]?.feeBreakdown || []).filter((_, idx) => idx !== itemIdx);
+      nextPkgs[selectedPkgIdx] = {
+        ...nextPkgs[selectedPkgIdx],
+        feeBreakdown: curBreakdown
+      };
+      return { ...prev, packages: nextPkgs };
+    });
+  }
+
+  return (
+    <article className="card" style={{ maxWidth: "1050px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <p className="eyebrow">Pricing & Fee Management</p>
+          <h2>Package & Pricing Plans</h2>
+        </div>
+      </div>
+
+      <form onSubmit={handlePkgSubmit} style={{ display: "grid", gap: "24px" }}>
+        {/* Section Main Title */}
+        <label style={{ display: "grid", gap: "6px" }}>
+          <strong>Main Section Title</strong>
+          <input
+            type="text"
+            value={pkgDraft.title || ""}
+            onChange={(e) => setPkgDraft((prev) => ({ ...prev, title: e.target.value }))}
+            placeholder="e.g. What will these 6 Months Cost?"
+            style={{ padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+          />
+        </label>
+
+        {/* Plan Selector Dropdown */}
+        <div style={{ background: "rgba(248, 156, 28, 0.08)", padding: "16px 20px", borderRadius: "12px", border: "1px solid rgba(248, 156, 28, 0.3)", display: "flex", alignItems: "center", gap: "16px" }}>
+          <strong style={{ color: "#f89c1c", fontSize: "0.95rem", flexShrink: 0 }}>Select Package Plan to Edit:</strong>
+          <select
+            value={selectedPkgIdx}
+            onChange={(e) => setSelectedPkgIdx(Number(e.target.value))}
+            style={{ flex: 1, padding: "10px 14px", borderRadius: "8px", border: "1px solid #f89c1c", background: "var(--card-bg, #1e1e24)", color: "var(--foreground, #fff)", fontWeight: "700" }}
+          >
+            {packages.map((pkg, idx) => (
+              <option key={pkg.id || idx} value={idx}>
+                {pkg.badge || `Package ${idx + 1}`} ({pkg.totalPayable || pkg.originalPrice})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Selected Package Details */}
+        {currentPkg && (
+          <div style={{ display: "grid", gap: "20px", background: "rgba(255, 255, 255, 0.02)", padding: "24px", borderRadius: "14px", border: "1px solid var(--border-color, #333)" }}>
+            <h3 style={{ margin: 0, color: "#f89c1c" }}>Editing: {currentPkg.badge}</h3>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Plan Badge Name</strong>
+                <input
+                  type="text"
+                  value={currentPkg.badge || ""}
+                  onChange={(e) => updatePkgField("badge", e.target.value)}
+                  placeholder="e.g. Founder's Advantage Plan"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Plan Subtitle / Mode</strong>
+                <input
+                  type="text"
+                  value={currentPkg.subtitle || ""}
+                  onChange={(e) => updatePkgField("subtitle", e.target.value)}
+                  placeholder="e.g. Best Value - One Time Payment"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Base Price Display</strong>
+                <input
+                  type="text"
+                  value={currentPkg.originalPrice || ""}
+                  onChange={(e) => updatePkgField("originalPrice", e.target.value)}
+                  placeholder="e.g. ₹ 82,515*"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Tax / Fee Note</strong>
+                <input
+                  type="text"
+                  value={currentPkg.taxNote || ""}
+                  onChange={(e) => updatePkgField("taxNote", e.target.value)}
+                  placeholder="e.g. + 18% GST"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+            </div>
+
+            {/* Highlight Banner */}
+            <div style={{ display: "grid", gap: "12px", border: "1px dashed rgba(248, 156, 28, 0.4)", padding: "16px", borderRadius: "10px" }}>
+              <strong style={{ color: "#f89c1c" }}>Highlight Banner Box</strong>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <span>Banner Title</span>
+                <input
+                  type="text"
+                  value={currentPkg.highlightBannerTitle || ""}
+                  onChange={(e) => updatePkgField("highlightBannerTitle", e.target.value)}
+                  placeholder="e.g. Exclusive Benefits for the Founding Cohort"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <span>Banner Description</span>
+                <input
+                  type="text"
+                  value={currentPkg.highlightBannerText || ""}
+                  onChange={(e) => updatePkgField("highlightBannerText", e.target.value)}
+                  placeholder="e.g. Save more with Founder Scholarship..."
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+            </div>
+
+            {/* Fee Breakdown Editor */}
+            <div style={{ display: "grid", gap: "12px", border: "1px solid rgba(255,255,255,0.1)", padding: "16px", borderRadius: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ color: "#f89c1c" }}>Fee Breakdown Items</strong>
+                <button type="button" onClick={addBreakdownItem} style={{ padding: "6px 12px", fontSize: "0.85rem", cursor: "pointer" }}>
+                  + Add Fee Item / Discount
+                </button>
+              </div>
+
+              {(currentPkg.feeBreakdown || []).map((item, fIdx) => (
+                <div key={fIdx} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <input
+                    type="text"
+                    value={item.label}
+                    onChange={(e) => updateBreakdownItem(fIdx, "label", e.target.value)}
+                    placeholder="Item Label (e.g. Founder's Scholarship)"
+                    style={{ flex: 1, padding: "6px 10px", borderRadius: "4px" }}
+                  />
+                  <input
+                    type="text"
+                    value={item.amount}
+                    onChange={(e) => updateBreakdownItem(fIdx, "amount", e.target.value)}
+                    placeholder="Amount (e.g. - ₹12,515)"
+                    style={{ width: "140px", padding: "6px 10px", borderRadius: "4px" }}
+                  />
+                  <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.8rem", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(item.isDiscount)}
+                      onChange={(e) => updateBreakdownItem(fIdx, "isDiscount", e.target.checked)}
+                    />
+                    Discount (Orange)
+                  </label>
+                  <button type="button" onClick={() => removeBreakdownItem(fIdx)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Total Payable & CTA */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Total Effective Fee</strong>
+                <input
+                  type="text"
+                  value={currentPkg.totalEffectiveFee || ""}
+                  onChange={(e) => updatePkgField("totalEffectiveFee", e.target.value)}
+                  placeholder="e.g. ₹65,000*"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Total Payable Display</strong>
+                <input
+                  type="text"
+                  value={currentPkg.totalPayable || ""}
+                  onChange={(e) => updatePkgField("totalPayable", e.target.value)}
+                  placeholder="e.g. ₹65,000*"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: "6px" }}>
+                <strong>Button CTA Text</strong>
+                <input
+                  type="text"
+                  value={currentPkg.ctaText || ""}
+                  onChange={(e) => updatePkgField("ctaText", e.target.value)}
+                  placeholder="e.g. APPLY NOW --->"
+                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+            </div>
+          </div>
+        )}
+
+        {packageFeedback ? <p className={packageFeedback.ok ? "form-feedback" : "form-feedback error"}>{packageFeedback.message}</p> : null}
+
+        <div className="form-actions" style={{ marginTop: "16px" }}>
+          <button type="submit" className="primary-button" disabled={isSavingPackage} style={{ padding: "12px 28px", fontSize: "1rem" }}>
+            {isSavingPackage ? "Saving Package Settings..." : "Save Package Settings"}
+          </button>
+        </div>
+      </form>
+    </article>
+  );
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState("");
   const [admin, setAdmin] = useState(null);
@@ -743,16 +1497,27 @@ export default function AdminPage() {
   const [teacherDraft, setTeacherDraft] = useState(createEmptyTeacher());
   const [teacherImageFile, setTeacherImageFile] = useState(null);
   const [teacherFeedback, setTeacherFeedback] = useState(null);
+  const [videoSettings, setVideoSettings] = useState({
+    youtubeUrl: "",
+    title: "Experience Agency-Led Training at DigiNext",
+    subtitle: "Watch how our students build real-world marketing campaigns inside a live agency environment."
+  });
+  const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculumSettings);
+  const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
+  const [settingsFeedback, setSettingsFeedback] = useState(null);
+  const [curriculumFeedback, setCurriculumFeedback] = useState(null);
+  const [packageFeedback, setPackageFeedback] = useState(null);
   const [savingKey, setSavingKey] = useState("");
 
   async function loadAdminData(activeToken) {
-    const [dashboardResult, citiesResult, coursesResult, certificatesResult, teachersResult, leadsResult] = await Promise.all([
+    const [dashboardResult, citiesResult, coursesResult, certificatesResult, teachersResult, leadsResult, settingsResult] = await Promise.all([
       request("/dashboard", { token: activeToken }),
       request("/cities"),
       request("/courses", { token: activeToken }),
       request("/certificates/admin/all", { token: activeToken }),
       request("/teachers?includeHidden=true", { token: activeToken }),
-      request("/leads", { token: activeToken })
+      request("/leads", { token: activeToken }),
+      request("/settings")
     ]);
 
     if (dashboardResult.ok) {
@@ -777,6 +1542,88 @@ export default function AdminPage() {
 
     if (leadsResult.ok) {
       setLeads(leadsResult.data || []);
+    }
+
+    if (settingsResult.ok && Array.isArray(settingsResult.data)) {
+      const map = settingsResult.data.reduce((acc, curr) => {
+        acc[curr.key] = curr.valueJson;
+        return acc;
+      }, {});
+      if (map.video_settings) {
+        setVideoSettings((current) => ({ ...current, ...map.video_settings }));
+      }
+      if (map.curriculum_settings) {
+        setCurriculumSettings(map.curriculum_settings);
+      }
+      if (map.package_settings) {
+        setPackageSettings(map.package_settings);
+      }
+    }
+  }
+
+  async function savePackageSettings(payload) {
+    setSavingKey("package_settings");
+    setPackageFeedback(null);
+
+    const result = await request("/settings", {
+      method: "PUT",
+      token,
+      body: {
+        key: "package_settings",
+        valueJson: payload
+      }
+    });
+
+    setSavingKey("");
+    if (result.ok) {
+      setPackageSettings(payload);
+      setPackageFeedback({ ok: true, message: "Package & Pricing settings updated successfully!" });
+    } else {
+      setPackageFeedback({ ok: false, message: result.error || "Failed to update package settings" });
+    }
+  }
+
+  async function saveVideoSettings(payload) {
+    setSavingKey("video_settings");
+    setSettingsFeedback(null);
+
+    const result = await request("/settings", {
+      method: "PUT",
+      token,
+      body: {
+        key: "video_settings",
+        valueJson: payload
+      }
+    });
+
+    setSavingKey("");
+    if (result.ok) {
+      setVideoSettings(payload);
+      setSettingsFeedback({ ok: true, message: "Video settings updated successfully!" });
+    } else {
+      setSettingsFeedback({ ok: false, message: result.error || "Failed to update video settings" });
+    }
+  }
+
+  async function saveCurriculumSettings(payload) {
+    setSavingKey("curriculum_settings");
+    setCurriculumFeedback(null);
+
+    const result = await request("/settings", {
+      method: "PUT",
+      token,
+      body: {
+        key: "curriculum_settings",
+        valueJson: payload
+      }
+    });
+
+    setSavingKey("");
+    if (result.ok) {
+      setCurriculumSettings(payload);
+      setCurriculumFeedback({ ok: true, message: "Curriculum settings updated successfully!" });
+    } else {
+      setCurriculumFeedback({ ok: false, message: result.error || "Failed to update curriculum settings" });
     }
   }
 
@@ -1113,6 +1960,8 @@ export default function AdminPage() {
     setTeacherFeedback(null);
   }
 
+  const navigation = ["Dashboard", "Courses", "Packages", "Teachers", "Leads", "Curriculum", "Settings"];
+
   if (booting) {
     return <main className="loading-shell">Loading admin workspace...</main>;
   }
@@ -1164,24 +2013,12 @@ export default function AdminPage() {
             isDeleting={savingKey.startsWith("delete-course-") ? savingKey.replace("delete-course-", "") : ""}
           />
         ) : null}
-        {activeView === "Certificates" ? (
-          <CertificatesView
-            certificates={certificates}
-            draft={certificateDraft}
-            setDraft={setCertificateDraft}
-            onFileChange={(file) => {
-              setCertificateImageFile(file);
-              setCertificateDraft((current) => ({
-                ...current,
-                imageName: file?.name || ""
-              }));
-            }}
-            onEdit={editCertificate}
-            onDelete={deleteCertificateItem}
-            onSubmit={submitCertificate}
-            feedback={certificateFeedback}
-            isSaving={savingKey === "certificate"}
-            isDeleting={savingKey.startsWith("delete-certificate-") ? savingKey.replace("delete-certificate-", "") : ""}
+        {activeView === "Packages" ? (
+          <PackagesView
+            packageSettings={packageSettings}
+            onSavePackageSettings={savePackageSettings}
+            isSavingPackage={savingKey === "package_settings"}
+            packageFeedback={packageFeedback}
           />
         ) : null}
         {activeView === "Teachers" ? (
@@ -1205,6 +2042,22 @@ export default function AdminPage() {
           />
         ) : null}
         {activeView === "Leads" ? <LeadsView leads={leads} /> : null}
+        {activeView === "Curriculum" ? (
+          <CurriculumView
+            curriculumSettings={curriculumSettings}
+            onSaveCurriculumSettings={saveCurriculumSettings}
+            isSavingCurriculum={savingKey === "curriculum_settings"}
+            curriculumFeedback={curriculumFeedback}
+          />
+        ) : null}
+        {activeView === "Settings" ? (
+          <SettingsView
+            videoSettings={videoSettings}
+            onSaveVideoSettings={saveVideoSettings}
+            isSavingVideo={savingKey === "video_settings"}
+            videoFeedback={settingsFeedback}
+          />
+        ) : null}
       </section>
     </main>
   );
