@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = "https://diginext-ij6j.onrender.com/api/v1" || "http://127.0.0.1:4000/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api/v1";
 
 const fallbackBrand = {
   lightLogo: "/DigiNext-02.png",
@@ -326,6 +326,129 @@ const courseContent = [
   }
 ];
 
+const defaultCurriculum = {
+  title: "12 Weeks to Kickstart Your Digital Marketing Journey",
+  subtitle: "(Yes 12 weeks is all it will take)",
+  description:
+    "Step inside Digilligent and learn how a modern marketing agency operates. From client meetings and campaign planning to content production and performance marketing, you'll gain firsthand exposure to the people, processes, and projects that drive real business growth.",
+  weeks: [
+    {
+      weekNumber: 1,
+      tag: "ORIENTATION & FOUNDATIONS OF DIGITAL MARKETING",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "The Digital Playfield",
+          thumbnail: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Importance of Social Media & Digital Marketing",
+            "The Shift from Advertising to Storytelling",
+            "Soft Skills for Digital Marketer",
+            "Latest Trending Content Overview (Reels/Trends)",
+            "The Marketing Funnel Model (TOFU, MOFU, BOFU)"
+          ]
+        },
+        {
+          episodeNumber: 2,
+          title: "Agency Operations & Brief Breakdown",
+          thumbnail: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Deconstructing Client Briefs",
+            "Cross-Functional Team Collaboration",
+            "Content Strategy Frameworks",
+            "Sprint Planning & Project Deadlines"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 2,
+      tag: "BRAND STRATEGY & CUSTOMER AVATARS",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "Customer Avatars & Positioning",
+          thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Building Ideal Customer Profiles (ICPs)",
+            "Competitor Benchmarking & Intelligence",
+            "Value Proposition & Brand Positioning",
+            "Brand Tone of Voice Guidelines"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 3,
+      tag: "CONTENT CREATION & COPYWRITING",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "High-Converting Copy & Creative Briefs",
+          thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Hook, Line & Sinker Copywriting Sprints",
+            "Scripting Short-Form Video (Reels/Shorts)",
+            "Visual Storytelling & Creative Briefs",
+            "AI Copywriting Tools Integration"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 4,
+      tag: "META ADS & PERFORMANCE MARKETING",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "Meta Ads Manager & Campaign Architecture",
+          thumbnail: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Meta Pixel & Conversion API Setup",
+            "Audience Targeting & Retargeting Funnels",
+            "A/B Testing Creatives & Ad Copies",
+            "Budget Optimization & ROAS Tracking"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 5,
+      tag: "GOOGLE ADS & SEARCH ENGINE MARKETING",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "Search, Display & YouTube Ad Campaigns",
+          thumbnail: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "Keyword Intent & Match Types",
+            "Quality Score & Bidding Strategies",
+            "YouTube In-Stream Video Campaigns",
+            "Google Analytics 4 (GA4) Custom Events"
+          ]
+        }
+      ]
+    },
+    {
+      weekNumber: 6,
+      tag: "SEO & ORGANIC GROWTH PLAYBOOKS",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "Technical SEO & Organic Scaling",
+          thumbnail: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80",
+          bullets: [
+            "On-Page SEO & Content Audits",
+            "Technical SEO & Page Speed Optimization",
+            "Local SEO & Google Business Profile",
+            "Organic Growth & Backlink Building"
+          ]
+        }
+      ]
+    }
+  ]
+};
+
 async function fetchJson(path, init) {
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, init);
@@ -459,9 +582,38 @@ function normalizeCertificates(items) {
 
 function Header({ brand, theme, onThemeToggle }) {
   const logo = theme === "dark" ? brand.darkLogo || fallbackBrand.darkLogo : brand.lightLogo || fallbackBrand.lightLogo;
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    function handleScroll() {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 20) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 70) {
+        // Scrolling DOWN -> Hide header
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling UP -> Reveal header
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   return (
-    <header className="site-header">
+    <header
+      className="site-header"
+      style={{
+        transform: isVisible ? "translateY(0)" : "translateY(-100%)",
+        transition: "transform 0.3s ease-in-out"
+      }}
+    >
       <div className="shell">
         <div className="header-row">
           <a href="#" className="brand" aria-label="DGNext home">
@@ -472,6 +624,7 @@ function Header({ brand, theme, onThemeToggle }) {
             <a href="#about">About</a>
             <a href="#courses">Courses</a>
             <a href="#teachers">Teachers</a>
+            <a href="#pricing">Pricing</a>
           </nav>
           <div className="header-actions">
             <button type="button" className="theme-toggle" onClick={onThemeToggle} aria-label="Toggle theme">
@@ -492,6 +645,7 @@ function Header({ brand, theme, onThemeToggle }) {
           <a href="#about">About</a>
           <a href="#courses">Courses</a>
           <a href="#teachers">Teachers</a>
+          <a href="#pricing">Pricing</a>
           <a href="#faq">FAQs</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -568,29 +722,275 @@ function Hero({ course, onOpenModal }) {
   );
 }
 
-function CertificatesSection({ certificates }) {
+function getYouTubeEmbedUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim();
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = trimmed.match(regExp);
+  const videoId = match && match[2].length === 11 ? match[2] : (trimmed.length === 11 ? trimmed : null);
+  return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0` : null;
+}
+
+function VideoSection({ videoSettings }) {
+  const embedUrl = getYouTubeEmbedUrl(videoSettings?.youtubeUrl);
+
   return (
-    <section className="section">
+    <section className="video-section">
       <div className="shell">
-        <div className="section-heading">
-          <h2>Certificates</h2>
-          <div className="rule" />
+        <div className="video-card">
+          <div className="video-container">
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                title="DigiNext Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <div className="video-placeholder">
+                <h3>Video Showcase</h3>
+                <p>No video URL configured yet. You can update the YouTube video link from the DigiNext Admin Settings.</p>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="certificate-grid">
-          {certificates.length > 0
-            ? certificates.map((certificate) => (
-              <div key={certificate.id} className="card certificate-card">
-                <div className="certificate-media">
-                  <img src={certificate.imageUrl} alt={certificate.title} className="certificate-image" />
+      </div>
+    </section>
+  );
+}
+
+const defaultPackageSettings = {
+  title: "What will these 6 Months Cost?",
+  packages: [
+    {
+      id: "founders-plan",
+      badge: "Founder's Advantage Plan",
+      subtitle: "Best Value - One Time Payment",
+      originalPrice: "₹ 82,515*",
+      taxNote: "+ 18% GST",
+      highlightBannerTitle: "Exclusive Benefits for the Founding Cohort",
+      highlightBannerText: "Save more with Founder Scholarship and Upfront Payment Benefits.",
+      feeBreakdown: [
+        { label: "Professional Certification Program", amount: "₹82,515", isDiscount: false },
+        { label: "Founder's Scholarship", amount: "- ₹12,515", isDiscount: true },
+        { label: "Upfront Payment Benefit", amount: "- ₹5,000", isDiscount: false }
+      ],
+      totalEffectiveFee: "₹65,000*",
+      totalPayable: "₹65,000*",
+      totalPayableNote: "Inclusive of 18% GST",
+      ctaText: "APPLY NOW --->"
+    },
+    {
+      id: "flexible-plan",
+      badge: "Flexible Learning Plan",
+      subtitle: "3-Phase Payment",
+      originalPrice: "₹ 82,515*",
+      taxNote: "+ 18% GST",
+      highlightBannerTitle: "Flexible Payments. Same Learning Experience.",
+      highlightBannerText: "Spread your payments across three phases without missing out on the complete DigiNext journey.",
+      feeBreakdown: [
+        { label: "Professional Certification Program", amount: "₹82,515", isDiscount: false },
+        { label: "Founder's Scholarship", amount: "- ₹10,515", isDiscount: true },
+        { label: "Upfront Payment Benefit", amount: "- ₹5,000", isDiscount: false },
+        { label: "EMI Processing Fees", amount: "- ₹2,000", isDiscount: false }
+      ],
+      totalEffectiveFee: "₹74,000*",
+      totalPayable: "₹74,000*",
+      totalPayableNote: "Inclusive of 18% GST",
+      ctaText: "APPLY NOW --->"
+    }
+  ]
+};
+
+function PackagesSection({ packageSettings, onOpenModal }) {
+  const data = packageSettings || defaultPackageSettings;
+  const packages = Array.isArray(data.packages) && data.packages.length > 0 ? data.packages : defaultPackageSettings.packages;
+
+  return (
+    <section
+      id="pricing"
+      className="section pricing-section"
+      style={{
+        padding: "44px 0 56px 0",
+        background: "#0a0a0d",
+        scrollMarginTop: "88px"
+      }}
+    >
+      <div className="shell" style={{ maxWidth: "940px", margin: "0 auto", padding: "0 16px" }}>
+        <div className="section-heading" style={{ textAlign: "center", marginBottom: "24px" }}>
+          <h2 style={{ fontSize: "1.9rem", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em" }}>
+            {data.title || "What will these 6 Months Cost?"}
+          </h2>
+          <div className="rule" style={{ margin: "10px auto 0", width: "45px", height: "3px", background: "#f89c1c", borderRadius: "2px" }} />
+        </div>
+
+        <div
+          className="packages-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
+            justifyContent: "center",
+            maxWidth: "860px",
+            margin: "0 auto",
+            gap: "24px"
+          }}
+        >
+          {packages.map((pkg, idx) => (
+            <div
+              key={pkg.id || idx}
+              className="package-card"
+              style={{
+                background: "#111116",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: "14px",
+                overflow: "hidden",
+                boxShadow: "0 10px 28px rgba(0, 0, 0, 0.45)",
+                display: "flex",
+                flexDirection: "column"
+              }}
+            >
+              {/* Top Inner Content Area */}
+              <div style={{ padding: "18px 20px 14px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
+                {/* Pill Badge */}
+                <div style={{ marginBottom: "8px" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "rgba(255, 255, 255, 0.08)",
+                      border: "1px solid rgba(255, 255, 255, 0.16)",
+                      padding: "4px 12px",
+                      borderRadius: "99px",
+                      fontSize: "0.78rem",
+                      fontWeight: "600",
+                      color: "#ffffff"
+                    }}
+                  >
+                    <span>{idx === 0 ? "🏆" : "💳"}</span>
+                    <span>{pkg.badge}</span>
+                  </div>
                 </div>
-                <h3>{certificate.title}</h3>
+
+                {/* Subtitle */}
+                {pkg.subtitle && (
+                  <div style={{ fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.55)", marginBottom: "2px" }}>
+                    {pkg.subtitle}
+                  </div>
+                )}
+
+                {/* Base Price & Tax Note */}
+                <div style={{ marginBottom: "12px" }}>
+                  <div style={{ fontSize: "2.1rem", fontWeight: "900", color: "#ffffff", lineHeight: "1.05", letterSpacing: "-0.02em" }}>
+                    {pkg.originalPrice}
+                  </div>
+                  {pkg.taxNote && (
+                    <div style={{ fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "1px" }}>
+                      {pkg.taxNote}
+                    </div>
+                  )}
+                </div>
+
+                {/* Dashed Highlight Banner */}
+                {(pkg.highlightBannerTitle || pkg.highlightBannerText) && (
+                  <div
+                    style={{
+                      background: "rgba(248, 156, 28, 0.04)",
+                      border: "1px dashed rgba(248, 156, 28, 0.35)",
+                      borderRadius: "8px",
+                      padding: "10px 12px",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "10px",
+                      marginBottom: "12px"
+                    }}
+                  >
+                    <span style={{ fontSize: "1.2rem", lineHeight: "1" }}>🎓</span>
+                    <div>
+                      {pkg.highlightBannerTitle && (
+                        <div style={{ color: "#f89c1c", fontWeight: "700", fontSize: "0.8rem", marginBottom: "2px" }}>
+                          {pkg.highlightBannerTitle}
+                        </div>
+                      )}
+                      {pkg.highlightBannerText && (
+                        <div style={{ color: "rgba(255, 255, 255, 0.68)", fontSize: "0.72rem", lineHeight: "1.3" }}>
+                          {pkg.highlightBannerText}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Thin Line Separator */}
+                <div style={{ height: "1px", background: "rgba(255, 255, 255, 0.08)", margin: "0 0 12px 0" }} />
+
+                {/* Fee Breakdown List */}
+                <div style={{ marginTop: "auto", marginBottom: "12px" }}>
+                  <div style={{ fontSize: "0.7rem", fontWeight: "800", letterSpacing: "0.08em", color: "rgba(255, 255, 255, 0.55)", marginBottom: "8px" }}>
+                    FEE BREAKDOWN
+                  </div>
+
+                  {(pkg.feeBreakdown || []).map((item, fIdx) => (
+                    <div key={fIdx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", marginBottom: "6px" }}>
+                      <span style={{ color: item.isDiscount ? "#f89c1c" : "rgba(255, 255, 255, 0.8)", fontWeight: item.isDiscount ? "700" : "400" }}>
+                        {item.label}
+                      </span>
+                      <span style={{ color: item.isDiscount ? "#f89c1c" : "#ffffff", fontWeight: "700" }}>
+                        {item.amount}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total Effective Program Fee */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                  <span style={{ fontSize: "0.92rem", fontWeight: "800", color: "#ffffff" }}>Total Effective Program Fee</span>
+                  <span style={{ fontSize: "1.18rem", fontWeight: "900", color: "#ffffff" }}>{pkg.totalEffectiveFee}</span>
+                </div>
               </div>
-            ))
-            : Array.from({ length: 3 }, (_, index) => (
-              <div key={index} className="card certificate-card">
-                <div className="certificate-placeholder">Certificate preview {index + 1}</div>
+
+              {/* Bottom Dark Total Payable Box & CTA */}
+              <div
+                style={{
+                  background: "radial-gradient(circle at center, #0c0c10 0%, #060608 100%)",
+                  padding: "14px 20px 16px 20px",
+                  borderTop: "1px dashed rgba(255, 255, 255, 0.15)",
+                  textAlign: "center"
+                }}
+              >
+                <div style={{ fontSize: "0.66rem", fontWeight: "800", color: "rgba(255, 255, 255, 0.55)", letterSpacing: "0.08em", marginBottom: "2px" }}>
+                  TOTAL PAYABLE
+                </div>
+                <div style={{ fontSize: "1.9rem", fontWeight: "900", color: "#ffffff", lineHeight: "1" }}>
+                  {pkg.totalPayable}
+                </div>
+                <div style={{ fontSize: "0.7rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "2px", marginBottom: "12px" }}>
+                  {pkg.totalPayableNote || "Inclusive of 18% GST"}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenModal && onOpenModal("CALLBACK")}
+                  style={{
+                    width: "100%",
+                    background: "linear-gradient(90deg, #f89c1c 0%, #fbaf33 100%)",
+                    color: "#000000",
+                    border: "none",
+                    padding: "10px",
+                    borderRadius: "7px",
+                    fontWeight: "900",
+                    fontSize: "0.88rem",
+                    letterSpacing: "0.04em",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(248, 156, 28, 0.28)",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  {pkg.ctaText || "APPLY NOW --->"}
+                </button>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -623,39 +1023,275 @@ function AboutSection({ course }) {
   );
 }
 
-function CoursesSection({ courses, activeCourseSlug, onSelectCourse, onOpenModal }) {
+function CurriculumSection({ curriculumSettings, onOpenModal }) {
+  const curriculum = curriculumSettings || defaultCurriculum;
+  const weeks = curriculum.weeks || defaultCurriculum.weeks;
+
+  const [activeWeekIndex, setActiveWeekIndex] = useState(0);
+  const [activeEpIndex, setActiveEpIndex] = useState(0);
+
+  const currentWeek = weeks[activeWeekIndex] || weeks[0];
+  const episodes = Array.isArray(currentWeek.episodes) && currentWeek.episodes.length > 0 ? currentWeek.episodes : [{ title: "Overview", bullets: [] }];
+  const currentEpisode = episodes[activeEpIndex] || episodes[0];
+
+  const handleNextEpisode = () => {
+    if (activeEpIndex < episodes.length - 1) {
+      setActiveEpIndex(activeEpIndex + 1);
+    } else if (activeWeekIndex < weeks.length - 1) {
+      setActiveWeekIndex(activeWeekIndex + 1);
+      setActiveEpIndex(0);
+    }
+  };
+
+  const handlePrevEpisode = () => {
+    if (activeEpIndex > 0) {
+      setActiveEpIndex(activeEpIndex - 1);
+    } else if (activeWeekIndex > 0) {
+      const prevWeekEps = weeks[activeWeekIndex - 1].episodes || [];
+      setActiveWeekIndex(activeWeekIndex - 1);
+      setActiveEpIndex(Math.max(0, prevWeekEps.length - 1));
+    }
+  };
+
+  // Swipe support
+  const [dragStartX, setDragStartX] = useState(null);
+  const handleSwipeStart = (clientX) => {
+    setDragStartX(clientX);
+  };
+
+  const handleSwipeEnd = (clientX) => {
+    if (dragStartX === null) return;
+    const diff = dragStartX - clientX;
+    if (diff > 40) {
+      handleNextEpisode();
+    } else if (diff < -40) {
+      handlePrevEpisode();
+    }
+    setDragStartX(null);
+  };
+
+  const handlePlayClick = (e) => {
+    if (e) e.stopPropagation();
+    if (onOpenModal) {
+      onOpenModal("CALLBACK");
+    }
+  };
+
+  // Sliding Window of max 6 visible weeks
+  const maxVisibleWeeks = 6;
+  let startIdx = Math.max(
+    0,
+    Math.min(activeWeekIndex - Math.floor(maxVisibleWeeks / 2), weeks.length - maxVisibleWeeks)
+  );
+  if (startIdx < 0) startIdx = 0;
+  const visibleWeeks = weeks.slice(startIdx, startIdx + maxVisibleWeeks);
+
   return (
-    <section id="courses" className="section">
+    <section id="courses" className="curriculum-section">
       <div className="shell">
-        <div className="section-heading">
-          <h2>What Will You Learn</h2>
-          <div className="rule" />
+        {/* Section Header */}
+        <div className="curriculum-header">
+          <h2 className="curriculum-title">{curriculum.title || "12 Weeks to Kickstart Your Digital Marketing Journey"}</h2>
+          {curriculum.subtitle ? <div className="curriculum-subtitle">{curriculum.subtitle}</div> : null}
+          {curriculum.description ? <p className="curriculum-desc">{curriculum.description}</p> : null}
         </div>
-        <div className="course-grid">
-          {courses.map((course) => (
-            <article
-              key={course.slug}
-              className={`card course-card ${activeCourseSlug === course.slug ? "course-card-active" : ""}`}
-              onClick={() => onSelectCourse(course.slug)}
-            >
-              <h3>{course.title}</h3>
-              <p className="course-summary">{course.shortDescription}</p>
-              <ul>
-                {course.points.map((point) => (
-                  <li key={point}>{point}</li>
+
+        {/* Main Curriculum Card Container with Side Navigation Buttons */}
+        <div className="curriculum-card-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", maxWidth: "1020px", margin: "0 auto 32px" }}>
+          <button
+            type="button"
+            className="card-side-arrow-btn"
+            onClick={handlePrevEpisode}
+            disabled={activeWeekIndex === 0 && activeEpIndex === 0}
+            title="Previous Episode/Week"
+          >
+            ‹
+          </button>
+
+          <div
+            className="curriculum-card netflix-style-card"
+            onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
+            onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
+            onMouseDown={(e) => handleSwipeStart(e.clientX)}
+            onMouseUp={(e) => handleSwipeEnd(e.clientX)}
+            style={{ flex: 1, margin: 0, cursor: "grab", userSelect: "none", borderRadius: "16px", overflow: "hidden" }}
+          >
+            {/* Top Banner - Netflix Style */}
+            <div className="curriculum-banner" style={{ position: "relative" }}>
+              <div className="week-badge">
+                <div className="week-badge-label">WEEK</div>
+                <div className="week-badge-num">{currentWeek.weekNumber}</div>
+              </div>
+              <div className="banner-media" onClick={handlePlayClick} style={{ cursor: "pointer", position: "relative" }}>
+                <img
+                  src={currentEpisode.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
+                  alt={currentEpisode.title}
+                  className="banner-img"
+                />
+                
+                {/* Netflix Vignette Gradient */}
+                <div
+                  className="netflix-vignette"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)",
+                    pointerEvents: "none"
+                  }}
+                />
+
+                {/* Netflix Style Series Tag */}
+                <div
+                  className="netflix-brand-tag"
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    left: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "rgba(0,0,0,0.75)",
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    backdropFilter: "blur(4px)",
+                    borderLeft: "3px solid #e50914"
+                  }}
+                >
+                  <span style={{ color: "#e50914", fontWeight: "900", fontSize: "0.9rem" }}>N</span>
+                  <span style={{ color: "#fff", fontSize: "0.75rem", fontWeight: "700", letterSpacing: "0.08em" }}>
+                    SERIES • EPISODE {currentEpisode.episodeNumber || activeEpIndex + 1}
+                  </span>
+                </div>
+
+                {/* Netflix Play Button Overlay */}
+                <div className="play-button-overlay netflix-play-overlay" title="Play Episode to Open Lead Form">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Info Box */}
+            <div className="curriculum-info">
+              <div className="curriculum-tag-pill">{currentWeek.tag}</div>
+              <h3 className="episode-title">
+                <span className="ep-prefix">EP:{currentEpisode.episodeNumber || activeEpIndex + 1}</span> {currentEpisode.title}
+              </h3>
+
+              <div className="topics-grid">
+                {(currentEpisode.bullets || []).map((bullet, idx) => (
+                  <div key={idx} className="topic-item">
+                    <span className="topic-bullet">•</span>
+                    <span className="topic-text">{bullet}</span>
+                  </div>
                 ))}
-              </ul>
-              <div className="course-actions">
-                <button type="button" className="ghost-inline" onClick={(event) => { event.stopPropagation(); onOpenModal("BROCHURE", course.slug); }}>
-                  <Image src="/download.svg" alt="download" width={16} height={16} />
-                  <span>Download Curriculum</span>
+              </div>
+
+              {/* Netflix Style Play Action Bar */}
+              <div className="netflix-action-bar" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color, rgba(255,255,255,0.1))" }}>
+                <button
+                  type="button"
+                  className="netflix-play-btn"
+                  onClick={handlePlayClick}
+                  style={{
+                    background: "#e50914",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "10px 22px",
+                    borderRadius: "6px",
+                    fontWeight: "800",
+                    fontSize: "0.95rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 14px rgba(229, 9, 20, 0.4)",
+                    transition: "transform 0.2s ease, background 0.2s ease"
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  <span>Play Episode {currentEpisode.episodeNumber || activeEpIndex + 1}</span>
                 </button>
-                <button type="button" className="solid-inline" onClick={(event) => { event.stopPropagation(); onOpenModal("CALLBACK", course.slug); }}>
-                  Enquire Now
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onOpenModal && onOpenModal("BROCHURE")}
+                  style={{ padding: "10px 18px", fontSize: "0.9rem", fontWeight: "700", borderRadius: "6px" }}
+                >
+                  📄 Get Syllabus & Info
                 </button>
               </div>
-            </article>
-          ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="card-side-arrow-btn"
+            onClick={handleNextEpisode}
+            title="Next Episode/Week"
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Week Selector Navigation Bar */}
+        <div className="week-nav-container">
+          <span className="week-nav-label">Week</span>
+          <div className="week-buttons-list">
+            {visibleWeeks.map((w) => {
+              const actualWeekIdx = weeks.findIndex((item) => item.weekNumber === w.weekNumber);
+              const isActiveWeek = actualWeekIdx === activeWeekIndex;
+
+              return (
+                <div key={w.weekNumber} className="week-nav-item-wrapper" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    type="button"
+                    className={`week-nav-btn ${isActiveWeek ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveWeekIndex(actualWeekIdx);
+                      setActiveEpIndex(0);
+                    }}
+                  >
+                    {w.weekNumber}
+                  </button>
+
+                  {/* Interspersed episode indicator dots right beside active week */}
+                  {isActiveWeek && episodes.length > 1 && (
+                    <div className="week-ep-dots-bridge" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 4px" }}>
+                      {episodes.map((ep, epIdx) => (
+                        <span
+                          key={epIdx}
+                          className={`ep-dot ${epIdx === activeEpIndex ? "active" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveEpIndex(epIdx);
+                          }}
+                          title={`Episode ${epIdx + 1}: ${ep.title}`}
+                          style={{
+                            width: epIdx === activeEpIndex ? "10px" : "7px",
+                            height: epIdx === activeEpIndex ? "10px" : "7px",
+                            borderRadius: "50%",
+                            background: epIdx === activeEpIndex ? "#f89c1c" : "rgba(255, 255, 255, 0.3)",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease"
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dashed Line Divider */}
+        <div className="curriculum-divider">
+          <div className="dashed-line" />
         </div>
       </div>
     </section>
@@ -1016,7 +1652,7 @@ export default function Page() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   const router = useRouter();
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
   const [brand, setBrand] = useState(fallbackBrand);
   const [courses, setCourses] = useState(courseContent);
   const [certificates, setCertificates] = useState([]);
@@ -1024,10 +1660,17 @@ export default function Page() {
   const [activeCourseSlug, setActiveCourseSlug] = useState(courseContent[0].slug);
   const [openFaq, setOpenFaq] = useState(null);
   const [modal, setModal] = useState(null);
+  const [videoSettings, setVideoSettings] = useState({
+    youtubeUrl: "",
+    title: "Experience Agency-Led Training at DigiNext",
+    subtitle: "Watch how our students build real-world marketing campaigns inside a live agency environment."
+  });
+  const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculum);
+  const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
 
   useEffect(() => {
-    const savedTheme = typeof window !== "undefined" ? window.localStorage.getItem("diginext-theme") : null;
-    const initialTheme = savedTheme === "dark" ? "dark" : "light";
+    const savedTheme = typeof window !== "undefined" ? window.localStorage.getItem("diginext-theme-v2") : null;
+    const initialTheme = savedTheme === "light" ? "light" : "dark";
     setTheme(initialTheme);
   }, []);
 
@@ -1039,7 +1682,7 @@ export default function Page() {
     }
 
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("diginext-theme", theme);
+      window.localStorage.setItem("diginext-theme-v2", theme);
     }
   }, [theme]);
 
@@ -1064,6 +1707,15 @@ export default function Page() {
 
       const settingsMap = mapSettingsByKey(settingsRows);
       setBrand({ ...fallbackBrand, ...(settingsMap.brand || {}) });
+      if (settingsMap.video_settings) {
+        setVideoSettings((current) => ({ ...current, ...settingsMap.video_settings }));
+      }
+      if (settingsMap.curriculum_settings) {
+        setCurriculumSettings(settingsMap.curriculum_settings);
+      }
+      if (settingsMap.package_settings) {
+        setPackageSettings(settingsMap.package_settings);
+      }
     }
 
     loadData();
@@ -1114,10 +1766,11 @@ export default function Page() {
     <main data-theme={theme} className={isScrolled ? "is-scrolled" : ""}>
       <Header brand={brand} theme={theme} onThemeToggle={() => setTheme((current) => (current === "light" ? "dark" : "light"))} />
       <Hero course={activeCourse} onOpenModal={(type, slug) => setModal({ type, slug })} />
+      <VideoSection videoSettings={videoSettings} />
       <AboutSection course={activeCourse} />
-      <CoursesSection courses={courses} activeCourseSlug={activeCourseSlug} onSelectCourse={setActiveCourseSlug} onOpenModal={(type, slug) => setModal({ type, slug })} />
+      <CurriculumSection curriculumSettings={curriculumSettings} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <AgencySection course={activeCourse} />
-      <CertificatesSection certificates={certificates} />
+      <PackagesSection packageSettings={packageSettings} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <LearningSection items={activeCourse.learningItems} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <TechnologiesSection course={activeCourse} />
       <TeachersSection teachers={teachers} />
