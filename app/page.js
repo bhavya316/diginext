@@ -1105,7 +1105,9 @@ function CurriculumView({ curriculumSettings, onSaveCurriculumSettings, isSaving
 
                   {/* Clean Image Upload & Live Preview */}
                   <div style={{ display: "grid", gap: "8px" }}>
-                    <span className="field-note" style={{ fontWeight: "bold" }}>Thumbnail Image</span>
+                    <span className="field-note" style={{ fontWeight: "bold" }}>
+                      Thumbnail Image <span style={{ fontWeight: "normal", color: "#666", fontSize: "0.85em", marginLeft: "6px" }}>(Recommended dimensions: 1200 x 800 pixels)</span>
+                    </span>
                     
                     <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
                       {/* Live Image Preview Thumbnail */}
