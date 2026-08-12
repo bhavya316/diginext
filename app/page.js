@@ -13,88 +13,52 @@ const fallbackBrand = {
   supportPhone: "+91 98765 43210"
 };
 
-const locationOptions = ["THANE", "Mumbai", "Navi Mumbai", "Kalyan/Dombivali", "Beyond Kalyan Dombivali"];
-
 const defaultTechnologyRows = [
   [
-    { name: "Figma", image: "/figma.png" },
-    { name: "Next.js", image: "/next.webp" },
-    { name: "React", image: "/react.png" },
-    { name: "Node.js", image: "/node.png" },
-    { name: "Python", image: "/python.png" }
+    { name: "Google Ads", image: "/google-ads.png" },
+    { name: "Google Search Console", image: "/google-search-console.png" },
+    { name: "Canva", image: "/canva.png" },
+    { name: "Gamma", image: "/gamma.png" },
+    { name: "ChatGPT", image: "/chatgpt.png" },
+    { name: "Claude", image: "/claude.png" },
+    { name: "Mid Journey", image: "/mid-journey.png" },
+    { name: "Higxfield", image: "/higxfield.png" },
+    { name: "Google Keywords Planner", image: "/google-keywords-planner.png" }
   ],
   [
-    { name: "TensorFlow", image: "/tensor.png" },
-    { name: "AWS", image: "/aws.jpg" },
-    { name: "MongoDB", image: "/mongo.jpg" },
-    { name: "Git", image: "/git.png" },
-    { name: "Docker", image: "/docker.png" }
+    { name: "Meta Ads", image: "/meta-ads.png" },
+    { name: "Meta Business Suite", image: "/meta-business-suite.png" },
+    { name: "Instagram", image: "/instagram.png" },
+    { name: "Facebook", image: "/facebook.png" },
+    { name: "WhatsApp Business", image: "/whatsapp-business.png" },
+    { name: "Google My Business", image: "/google-my-business.png" },
+    { name: "Google Sheets", image: "/google-sheets.png" },
+    { name: "Notion", image: "/notion.png" }
   ]
 ];
 
 const courseTechnologyRows = {
   "ai-powered-digital-marketing-course": [
     [
-      { name: "Figma", image: "/figma.png" },
-      { name: "Git", image: "/git.png" },
-      { name: "Next.js", image: "/next.webp" },
-      { name: "React", image: "/react.png" },
-      { name: "AWS", image: "/aws.jpg" }
+      { name: "Google Ads", image: "/google-ads.png" },
+      { name: "Google Search Console", image: "/google-search-console.png" },
+      { name: "Canva", image: "/canva.png" },
+      { name: "Gamma", image: "/gamma.png" },
+      { name: "ChatGPT", image: "/chatgpt.png" },
+      { name: "Claude", image: "/claude.png" },
+      { name: "Mid Journey", image: "/mid-journey.png" },
+      { name: "Higxfield", image: "/higxfield.png" },
+      { name: "Google Keywords Planner", image: "/google-keywords-planner.png" }
     ],
     [
-      { name: "Python", image: "/python.png" },
-      { name: "TensorFlow", image: "/tensor.png" },
-      { name: "Node.js", image: "/node.png" },
-      { name: "MongoDB", image: "/mongo.jpg" },
-      { name: "Docker", image: "/docker.png" }
-    ]
-  ],
-  "data-science-machine-learning-course": [
-    [
-      { name: "Python", image: "/python.png" },
-      { name: "TensorFlow", image: "/tensor.png" },
-      { name: "Git", image: "/git.png" },
-      { name: "AWS", image: "/aws.jpg" },
-      { name: "Docker", image: "/docker.png" }
-    ],
-    [
-      { name: "MongoDB", image: "/mongo.jpg" },
-      { name: "Node.js", image: "/node.png" },
-      { name: "React", image: "/react.png" },
-      { name: "Next.js", image: "/next.webp" },
-      { name: "Figma", image: "/figma.png" }
-    ]
-  ],
-  "devops-with-aws-azure": [
-    [
-      { name: "AWS", image: "/aws.jpg" },
-      { name: "Docker", image: "/docker.png" },
-      { name: "Git", image: "/git.png" },
-      { name: "Node.js", image: "/node.png" },
-      { name: "Python", image: "/python.png" }
-    ],
-    [
-      { name: "Next.js", image: "/next.webp" },
-      { name: "React", image: "/react.png" },
-      { name: "MongoDB", image: "/mongo.jpg" },
-      { name: "TensorFlow", image: "/tensor.png" },
-      { name: "Figma", image: "/figma.png" }
-    ]
-  ],
-  "web-full-stack-development": [
-    [
-      { name: "Next.js", image: "/next.webp" },
-      { name: "React", image: "/react.png" },
-      { name: "Node.js", image: "/node.png" },
-      { name: "MongoDB", image: "/mongo.jpg" },
-      { name: "Git", image: "/git.png" }
-    ],
-    [
-      { name: "Docker", image: "/docker.png" },
-      { name: "AWS", image: "/aws.jpg" },
-      { name: "Figma", image: "/figma.png" },
-      { name: "Python", image: "/python.png" },
-      { name: "TensorFlow", image: "/tensor.png" }
+      { name: "Meta Ads", image: "/meta-ads.png" },
+      { name: "Meta Business Suite", image: "/meta-business-suite.png" },
+      { name: "Instagram", image: "/instagram.png" },
+      { name: "Facebook", image: "/facebook.png" },
+      { name: "WhatsApp Business", image: "/whatsapp-business.png" },
+      { name: "Google My Business", image: "/google-my-business.png" },
+      { name: "Google Sheets", image: "/google-sheets.png" },
+      { name: "Notion", image: "/notion.png" }
     ]
   ]
 };
@@ -580,7 +544,7 @@ function normalizeCertificates(items) {
   }));
 }
 
-function Header({ brand }) {
+function Header({ brand, onOpenContact }) {
   const logo = brand.darkLogo || fallbackBrand.darkLogo;
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -627,9 +591,9 @@ function Header({ brand }) {
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="header-actions">
-            <a href="#contact" className="contact-link">
+            <button type="button" className="contact-link" onClick={onOpenContact}>
               Contact
-            </a>
+            </button>
           </div>
           <div className="mobile-theme-slot">
           </div>
@@ -641,7 +605,7 @@ function Header({ brand }) {
           <a href="#teachers">Teachers</a>
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQs</a>
-          <a href="#contact">Contact</a>
+          <button type="button" onClick={onOpenContact}>Contact</button>
         </nav>
       </div>
     </header>
@@ -818,17 +782,7 @@ function PackagesSection({ packageSettings, onOpenModal }) {
           <div className="rule" style={{ margin: "10px auto 0", width: "45px", height: "3px", background: "#f89c1c", borderRadius: "2px" }} />
         </div>
 
-        <div
-          className="packages-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
-            justifyContent: "center",
-            maxWidth: "860px",
-            margin: "0 auto",
-            gap: "24px"
-          }}
-        >
+        <div className="packages-grid">
           {packages.map((pkg, idx) => (
             <div
               key={pkg.id || idx}
@@ -1135,63 +1089,66 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
               {allEpisodes.map((ep, idx) => (
                 <div
                   key={idx}
-                  className="curriculum-card netflix-style-card"
+                  className="curriculum-card variant-6-card"
                   onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
                   onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
                   onMouseDown={(e) => handleSwipeStart(e.clientX)}
                   onMouseUp={(e) => handleSwipeEnd(e.clientX)}
-                  style={{ flex: "0 0 100%", margin: 0, cursor: "grab", userSelect: "none", borderRadius: "16px", overflow: "hidden", boxSizing: "border-box" }}
+                  style={{
+                    flex: "0 0 100%", margin: 0, cursor: "grab", userSelect: "none",
+                    borderRadius: "16px", overflow: "hidden", boxSizing: "border-box",
+                    background: "#0d0d12", border: "1px solid rgba(255, 255, 255, 0.08)",
+                    display: "flex", flexDirection: "column"
+                  }}
                 >
-                  {/* Top Banner - Netflix Style */}
-                  <div className="curriculum-banner" style={{ position: "relative" }}>
-                    <div className="week-badge">
-                      <div className="week-badge-label">WEEK</div>
-                      <div className="week-badge-num">{ep.weekNumber}</div>
+                  {/* Top Split Section */}
+                  <div className="variant-6-top" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", width: "100%", minHeight: "280px" }}>
+
+                    {/* Left Info Area */}
+                    <div className="variant-6-left" style={{ flex: "1 1 300px", display: "flex", flexDirection: "column", justifyContent: "center", background: "#0d0d12", zIndex: 1 }}>
+                      <div style={{ color: "#f89c1c", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "16px" }}>
+                        {ep.tag}
+                      </div>
+                      <div style={{ width: "24px", height: "2px", background: "#f89c1c", marginBottom: "24px" }} />
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
+                        <span style={{ color: "#f89c1c", fontSize: "0.9rem", fontWeight: "700", letterSpacing: "0.05em" }}>WEEK</span>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
+                          <span style={{ color: "#f89c1c", fontSize: "4rem", fontWeight: "700", lineHeight: "1" }}>{ep.weekNumber}</span>
+                          <div style={{ display: "flex", flexDirection: "column", paddingBottom: "4px" }}>
+                            <h3 style={{ fontSize: "1.6rem", fontWeight: "700", color: "#ffffff", margin: 0, lineHeight: "1.3" }}>
+                              <span style={{ fontWeight: "400", opacity: 0.8, marginRight: "8px" }}>EP:{ep.episodeNumber || ep.epIdx + 1}</span>
+                              <br className="hidden md:block" />
+                              {ep.title}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="banner-media" onClick={handlePlayClick} style={{ cursor: "pointer", position: "relative" }}>
+
+                    {/* Right Image Area */}
+                    <div
+                      className="variant-6-right"
+                      style={{ flex: "1 1 300px", position: "relative", cursor: "pointer", overflow: "hidden" }}
+                      onClick={(e) => { e.stopPropagation(); if (onOpenModal) onOpenModal("CALLBACK"); }}
+                    >
                       <img
                         src={ep.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
                         alt={ep.title}
-                        className="banner-img"
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", opacity: 0.8 }}
                       />
+                      {/* Gradient to blend image into left side */}
+                      <div className="variant-6-gradient" style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "120px", background: "linear-gradient(to right, #0d0d12 0%, transparent 100%)" }} />
 
-                      {/* Netflix Vignette Gradient */}
-                      <div
-                        className="netflix-vignette"
-                        style={{
-                          position: "absolute",
-                          inset: 0,
-                          background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)",
-                          pointerEvents: "none"
-                        }}
-                      />
-
-                      {/* Netflix Style Series Tag */}
-                      <div
-                        className="netflix-brand-tag"
-                        style={{
-                          position: "absolute",
-                          top: "16px",
-                          left: "16px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          background: "rgba(0,0,0,0.75)",
-                          padding: "4px 10px",
-                          borderRadius: "4px",
-                          backdropFilter: "blur(4px)",
-                          borderLeft: "3px solid #e50914"
-                        }}
-                      >
-                        <span style={{ color: "#e50914", fontWeight: "900", fontSize: "0.9rem" }}>N</span>
-                        <span style={{ color: "#fff", fontSize: "0.75rem", fontWeight: "700", letterSpacing: "0.08em" }}>
-                          SERIES • EPISODE {ep.episodeNumber || ep.epIdx + 1}
-                        </span>
-                      </div>
-
-                      {/* Netflix Play Button Overlay */}
-                      <div className="play-button-overlay netflix-play-overlay" title="Play Episode to Open Lead Form">
-                        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                      {/* Variant 6 Play Button */}
+                      <div style={{
+                        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                        width: "60px", height: "60px", background: "#f89c1c", borderRadius: "50%",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: "0 8px 24px rgba(248, 156, 28, 0.4)",
+                        transition: "transform 0.2s ease"
+                      }}>
+                        <svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" style={{ marginLeft: "4px" }}>
                           <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
@@ -1199,12 +1156,7 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
                   </div>
 
                   {/* Bottom Info Box */}
-                  <div className="curriculum-info">
-                    <div className="curriculum-tag-pill">{ep.tag}</div>
-                    <h3 className="episode-title">
-                      <span className="ep-prefix">EP:{ep.episodeNumber || ep.epIdx + 1}</span> {ep.title}
-                    </h3>
-
+                  <div className="curriculum-info variant-6-bottom" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "#0a0a0f", flex: 1, display: "flex", flexDirection: "column" }}>
                     <div className="topics-grid">
                       {(ep.bullets || []).map((bullet, bIdx) => (
                         <div key={bIdx} className="topic-item">
@@ -1215,11 +1167,11 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
                     </div>
 
                     {/* Netflix Style Play Action Bar */}
-                    <div className="netflix-action-bar" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color, rgba(255,255,255,0.1))" }}>
+                    <div className="netflix-action-bar" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "auto", paddingTop: "16px", borderTop: "1px solid var(--border-color, rgba(255,255,255,0.1))" }}>
                       <button
                         type="button"
                         className="netflix-play-btn"
-                        onClick={handlePlayClick}
+                        onClick={(e) => { e.stopPropagation(); if (onOpenModal) onOpenModal("CALLBACK"); }}
                         style={{
                           background: "#e50914",
                           color: "#ffffff",
@@ -1245,7 +1197,7 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
                       <button
                         type="button"
                         className="secondary-button"
-                        onClick={() => onOpenModal && onOpenModal("BROCHURE")}
+                        onClick={(e) => { e.stopPropagation(); if (onOpenModal) onOpenModal("BROCHURE"); }}
                         style={{ padding: "10px 18px", fontSize: "0.9rem", fontWeight: "700", borderRadius: "6px" }}
                       >
                         📄 Get Syllabus & Info
@@ -1439,7 +1391,7 @@ function TeachersSection() {
           <h2>Teachers</h2>
           <div className="rule" />
         </div>
-        <div 
+        <div
           className="teachers-carousel"
           style={{
             display: "flex",
@@ -1452,7 +1404,8 @@ function TeachersSection() {
             msOverflowStyle: "none"
           }}
         >
-          <style dangerouslySetInnerHTML={{__html: `
+          <style dangerouslySetInnerHTML={{
+            __html: `
             .teachers-carousel::-webkit-scrollbar {
               display: none;
             }
@@ -1507,12 +1460,22 @@ function LeadCaptureForm({ courses, initialCourseSlug, initialRequestType, onSub
     email: "",
     phone: "",
     courseSlug: initialCourseSlug,
-    originLocation: locationOptions[0],
-    requestType: initialRequestType,
-    message: ""
+    requestType: initialRequestType
   });
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLabel = formState.requestType === "BROCHURE" ? "Get course brochure" : "Request callback";
+
+  const updateField = (field) => (event) => {
+    setFormState((current) => ({ ...current, [field]: event.target.value }));
+  };
+
+  const updatePhone = (event) => {
+    setFormState((current) => ({
+      ...current,
+      phone: event.target.value.replace(/\D/g, "").slice(0, 10)
+    }));
+  };
 
   useEffect(() => {
     setFormState((current) => ({
@@ -1535,11 +1498,9 @@ function LeadCaptureForm({ courses, initialCourseSlug, initialRequestType, onSub
       name: formState.name,
       email: formState.email,
       phone: formState.phone,
-      originLocation: formState.originLocation,
       interest: selectedCourse?.title || "",
       requestedAsset: formState.requestType,
-      brochureUrl: formState.requestType === "BROCHURE" ? selectedCourse?.brochureUrl || "" : "",
-      message: formState.message
+      brochureUrl: formState.requestType === "BROCHURE" ? selectedCourse?.brochureUrl || "" : ""
     });
 
     setIsSubmitting(false);
@@ -1554,56 +1515,85 @@ function LeadCaptureForm({ courses, initialCourseSlug, initialRequestType, onSub
       email: "",
       phone: "",
       courseSlug: initialCourseSlug || courses[0]?.slug || "",
-      originLocation: locationOptions[0],
-      requestType: initialRequestType || "CALLBACK",
-      message: ""
+      requestType: initialRequestType || "CALLBACK"
     });
   }
 
   return (
-    <form className="contact-form modal-form" onSubmit={handleSubmit}>
-      <input type="text" placeholder="Name" value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} required />
-      <input type="email" placeholder="Email" value={formState.email} onChange={(event) => setFormState((current) => ({ ...current, email: event.target.value }))} />
-      <input
-        type="tel"
-        placeholder="Phone"
-        value={formState.phone}
-        onChange={(event) => setFormState((current) => ({ ...current, phone: event.target.value.replace(/\D/g, "").slice(0, 10) }))}
-        inputMode="numeric"
-        maxLength={10}
-        required
-      />
-      <select value={formState.courseSlug} onChange={(event) => setFormState((current) => ({ ...current, courseSlug: event.target.value }))}>
-        {courses.map((course) => (
-          <option key={course.slug} value={course.slug}>
-            {course.title}
-          </option>
-        ))}
-      </select>
-      <select value={formState.originLocation} onChange={(event) => setFormState((current) => ({ ...current, originLocation: event.target.value }))}>
-        {locationOptions.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
-      </select>
-      <select value={formState.requestType} onChange={(event) => setFormState((current) => ({ ...current, requestType: event.target.value }))}>
-        <option value="CALLBACK">Request callback</option>
-        <option value="BROCHURE">Download brochure</option>
-      </select>
-      <textarea rows={5} placeholder="Message / Feedback" value={formState.message} onChange={(event) => setFormState((current) => ({ ...current, message: event.target.value }))} />
-      <p className="field-note">Where are you from? is now captured in the form as requested.</p>
-      {feedback.message ? <p className={`form-feedback ${feedback.type}`}>{feedback.message}</p> : null}
-      <div className="form-actions">
-        <button type="submit" className="primary-button" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit"}
+    <form className="contact-form modal-form premium-theme-form" onSubmit={handleSubmit}>
+      <label className="premium-form-group">
+        <span className="premium-form-label">Full name</span>
+        <span className="field-with-icon">
+          <svg className="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+          </svg>
+          <input
+            type="text"
+            className="premium-form-input has-icon"
+            placeholder="Your name"
+            value={formState.name}
+            onChange={updateField("name")}
+            autoComplete="name"
+            required
+          />
+        </span>
+      </label>
+
+      <label className="premium-form-group">
+        <span className="premium-form-label">Phone number</span>
+        <span className="field-with-icon">
+          <svg className="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293a1.125 1.125 0 01-1.21.38 12.035 12.035 0 01-7.143-7.143 1.125 1.125 0 01.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102A1.125 1.125 0 005.872 2.25H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+          </svg>
+          <input
+            type="tel"
+            className="premium-form-input has-icon"
+            placeholder="10-digit mobile number"
+            value={formState.phone}
+            onChange={updatePhone}
+            inputMode="numeric"
+            autoComplete="tel"
+            maxLength={10}
+            required
+          />
+        </span>
+      </label>
+
+      <label className="premium-form-group form-span-full">
+        <span className="premium-form-label">Email address</span>
+        <span className="field-with-icon">
+          <svg className="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0l-7.5-4.615a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+          <input
+            type="email"
+            className="premium-form-input has-icon"
+            placeholder="you@example.com"
+            value={formState.email}
+            onChange={updateField("email")}
+            autoComplete="email"
+          />
+        </span>
+      </label>
+
+      {feedback.message && (
+        <p className={`form-feedback ${feedback.type}`}>{feedback.message}</p>
+      )}
+
+      <div className="premium-form-actions">
+        <button type="submit" className="premium-submit-btn" disabled={isSubmitting}>
+          <span>{isSubmitting ? "Submitting..." : submitLabel}</span>
+          <span aria-hidden="true">-&gt;</span>
         </button>
+        <p>We will only use your details to contact you about DigiNext courses.</p>
       </div>
     </form>
   );
 }
 
 function ActionModal({ courses, initialCourseSlug, initialRequestType, onClose, onSubmitLead }) {
+  const isBrochureRequest = initialRequestType === "BROCHURE";
+
   return (
     <div className="overlay-panel" role="dialog" aria-modal="true">
       <div className="overlay-scrim" onClick={onClose} />
@@ -1611,32 +1601,16 @@ function ActionModal({ courses, initialCourseSlug, initialRequestType, onClose, 
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close dialog">
           ×
         </button>
-        <div className="mini-label">Speak to an Expert!</div>
-        <h3>Tell us about yourself</h3>
-        <p>Enquire Now and Download Curriculum both open this form.</p>
+        <div className="mini-label">{isBrochureRequest ? "Course Brochure" : "Speak to an Expert!"}</div>
+        <h3>{isBrochureRequest ? "Get the curriculum" : "Tell us about yourself"}</h3>
+        <p>{isBrochureRequest ? "Enter your details and we will open the course brochure after submission." : "Enter your details and our team will call you back."}</p>
         <LeadCaptureForm courses={courses} initialCourseSlug={initialCourseSlug} initialRequestType={initialRequestType} onSubmitLead={onSubmitLead} />
       </div>
     </div>
   );
 }
 
-function ContactSection({ courses, onSubmitLead }) {
-  return (
-    <section id="contact" className="section contact-section">
-      <div className="shell narrow">
-        <div className="section-heading">
-          <h2>Join our rapidly growing learning network</h2>
-        </div>
-        <div className="card contact-card">
-          <h3>Get Started with DGNext</h3>
-          <LeadCaptureForm courses={courses} initialCourseSlug={courses[0]?.slug || ""} initialRequestType="CALLBACK" onSubmitLead={onSubmitLead} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Footer({ brand }) {
+function Footer({ brand, onOpenContact }) {
   return (
     <footer className="site-footer" style={{ background: "#0a0a0a", color: "#f5f5f5", padding: "60px 0 40px", borderTop: "none" }}>
       <div className="shell" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
@@ -1645,7 +1619,7 @@ function Footer({ brand }) {
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", gap: "16px", fontSize: "14px", color: "#e5e5e5" }}>
           <div style={{ fontWeight: "400" }}>future@dotlabs.design</div>
           <a href="#about" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>About</a>
-          <a href="#contact" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Contact</a>
+          <button type="button" onClick={onOpenContact} style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s", background: "transparent", padding: 0, border: 0, cursor: "pointer" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Contact</button>
           <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Terms & Conditions</a>
           <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Privacy Policy</a>
           <a href="#" style={{ color: "#e5e5e5", textDecoration: "none", transition: "opacity 0.2s" }} onMouseOver={e => e.currentTarget.style.opacity = 0.7} onMouseOut={e => e.currentTarget.style.opacity = 1}>Refund Policy</a>
@@ -1673,7 +1647,7 @@ function Footer({ brand }) {
 
           {/* Center Text */}
           <div style={{ flex: "2", textAlign: "center", fontSize: "14px", color: "#a3a3a3", lineHeight: "1.6", minWidth: "250px" }}>
-            With 🫶 from a Designer to the<br />Designers of Tomorrow
+            With ❤️ from a Designer to the<br />Designers of Tomorrow
           </div>
 
           {/* Right Text */}
@@ -1689,13 +1663,13 @@ function Footer({ brand }) {
   );
 }
 
-function MobileDock() {
+function MobileDock({ onOpenContact }) {
   return (
     <nav className="mobile-dock" aria-label="Mobile navigation">
       <a href="#">Home</a>
       <a href="#courses">Courses</a>
       <a href="#teachers">Teachers</a>
-      <a href="#contact">Contact</a>
+      <button type="button" onClick={onOpenContact}>Contact</button>
     </nav>
   );
 }
@@ -1810,9 +1784,11 @@ export default function Page() {
     return { ok: true };
   }
 
+  const openContactModal = () => setModal({ type: "CALLBACK", slug: activeCourse.slug });
+
   return (
     <main data-theme="dark" className={isScrolled ? "is-scrolled" : ""}>
-      <Header brand={brand} />
+      <Header brand={brand} onOpenContact={openContactModal} />
       <Hero course={activeCourse} onOpenModal={(type, slug) => setModal({ type, slug })} />
       <VideoSection videoSettings={videoSettings} />
       <AboutSection course={activeCourse} />
@@ -1823,9 +1799,8 @@ export default function Page() {
       <TechnologiesSection course={activeCourse} />
       <TeachersSection teachers={teachers} />
       <FaqSection items={activeCourse.faqs} openFaq={openFaq} setOpenFaq={setOpenFaq} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
-      <ContactSection courses={courses} onSubmitLead={submitLead} />
-      <Footer brand={brand} />
-      <MobileDock />
+      <Footer brand={brand} onOpenContact={openContactModal} />
+      <MobileDock onOpenContact={openContactModal} />
       {modal ? <ActionModal courses={courses} initialCourseSlug={modal.slug} initialRequestType={modal.type} onClose={() => setModal(null)} onSubmitLead={submitLead} /> : null}
     </main>
   );
