@@ -1356,8 +1356,59 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
     onSavePackageSettings(pkgDraft);
   }
 
-  const packages = Array.isArray(pkgDraft.packages) ? pkgDraft.packages : defaultPackageSettings.packages;
+  const packages = Array.isArray(pkgDraft.packages) && pkgDraft.packages.length > 0
+    ? pkgDraft.packages
+    : defaultPackageSettings.packages;
   const currentPkg = packages[selectedPkgIdx] || packages[0] || {};
+
+  function handleAddPackage() {
+    const newIdx = packages.length;
+    const newPkg = {
+      id: `package-${Date.now()}`,
+      badge: `New Package Plan ${newIdx + 1}`,
+      subtitle: "Custom Payment Option",
+      originalPrice: "₹ 82,515*",
+      taxNote: "+ 18% GST",
+      highlightBannerTitle: "Special Cohort Offer",
+      highlightBannerText: "Save with our special introductory scholarship benefit.",
+      feeBreakdown: [
+        { label: "Professional Certification Program", amount: "₹82,515", isDiscount: false },
+        { label: "Special Discount", amount: "- ₹10,000", isDiscount: true }
+      ],
+      totalEffectiveFee: "₹72,515*",
+      totalPayable: "₹72,515*",
+      totalPayableNote: "Inclusive of 18% GST",
+      ctaText: "APPLY NOW --->"
+    };
+
+    setPkgDraft((prev) => {
+      const cur = Array.isArray(prev.packages) ? prev.packages : defaultPackageSettings.packages;
+      return { ...prev, packages: [...cur, newPkg] };
+    });
+    setSelectedPkgIdx(newIdx);
+  }
+
+  function handleDeletePackage(indexToDelete) {
+    if (packages.length <= 1) {
+      alert("At least one package plan must remain active on the platform.");
+      return;
+    }
+
+    const pkgName = packages[indexToDelete]?.badge || `Package ${indexToDelete + 1}`;
+    if (!window.confirm(`Are you sure you want to delete "${pkgName}"?`)) {
+      return;
+    }
+
+    setPkgDraft((prev) => {
+      const cur = Array.isArray(prev.packages) ? prev.packages : defaultPackageSettings.packages;
+      const filtered = cur.filter((_, idx) => idx !== indexToDelete);
+      return { ...prev, packages: filtered };
+    });
+
+    if (selectedPkgIdx >= packages.length - 1) {
+      setSelectedPkgIdx(Math.max(0, packages.length - 2));
+    }
+  }
 
   function updatePkgField(field, value) {
     setPkgDraft((prev) => {
@@ -1370,18 +1421,41 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
     });
   }
 
+  function computeAutoTotal(pkg) {
+    if (!pkg) return "₹0*";
+    let total = 0;
+    if (Array.isArray(pkg.feeBreakdown) && pkg.feeBreakdown.length > 0) {
+      pkg.feeBreakdown.forEach((item) => {
+        if (!item || !item.amount) return;
+        const str = String(item.amount);
+        const cleanDigits = str.replace(/[^0-9]/g, "");
+        const val = parseInt(cleanDigits, 10);
+        if (!isNaN(val)) {
+          const isNegative = str.includes("-") || Boolean(item.isDiscount);
+          total += isNegative ? -val : val;
+        }
+      });
+    } else if (pkg.originalPrice) {
+      const cleanDigits = String(pkg.originalPrice).replace(/[^0-9]/g, "");
+      total = parseInt(cleanDigits, 10) || 0;
+    }
+    return total > 0 ? `₹${total.toLocaleString("en-IN")}*` : "₹0*";
+  }
+
   function updateBreakdownItem(itemIdx, field, value) {
     setPkgDraft((prev) => {
       const nextPkgs = [...(prev.packages || [])];
-      const curBreakdown = [...(nextPkgs[selectedPkgIdx]?.feeBreakdown || [])];
+      const curPkg = { ...nextPkgs[selectedPkgIdx] };
+      const curBreakdown = [...(curPkg.feeBreakdown || [])];
       curBreakdown[itemIdx] = {
         ...curBreakdown[itemIdx],
         [field]: value
       };
-      nextPkgs[selectedPkgIdx] = {
-        ...nextPkgs[selectedPkgIdx],
-        feeBreakdown: curBreakdown
-      };
+      curPkg.feeBreakdown = curBreakdown;
+      const autoTotal = computeAutoTotal(curPkg);
+      curPkg.totalEffectiveFee = autoTotal;
+      curPkg.totalPayable = autoTotal;
+      nextPkgs[selectedPkgIdx] = curPkg;
       return { ...prev, packages: nextPkgs };
     });
   }
@@ -1389,12 +1463,14 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
   function addBreakdownItem() {
     setPkgDraft((prev) => {
       const nextPkgs = [...(prev.packages || [])];
-      const curBreakdown = [...(nextPkgs[selectedPkgIdx]?.feeBreakdown || [])];
+      const curPkg = { ...nextPkgs[selectedPkgIdx] };
+      const curBreakdown = [...(curPkg.feeBreakdown || [])];
       curBreakdown.push({ label: "Special Discount", amount: "- ₹1,000", isDiscount: true });
-      nextPkgs[selectedPkgIdx] = {
-        ...nextPkgs[selectedPkgIdx],
-        feeBreakdown: curBreakdown
-      };
+      curPkg.feeBreakdown = curBreakdown;
+      const autoTotal = computeAutoTotal(curPkg);
+      curPkg.totalEffectiveFee = autoTotal;
+      curPkg.totalPayable = autoTotal;
+      nextPkgs[selectedPkgIdx] = curPkg;
       return { ...prev, packages: nextPkgs };
     });
   }
@@ -1402,10 +1478,25 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
   function removeBreakdownItem(itemIdx) {
     setPkgDraft((prev) => {
       const nextPkgs = [...(prev.packages || [])];
-      const curBreakdown = (nextPkgs[selectedPkgIdx]?.feeBreakdown || []).filter((_, idx) => idx !== itemIdx);
+      const curPkg = { ...nextPkgs[selectedPkgIdx] };
+      const curBreakdown = (curPkg.feeBreakdown || []).filter((_, idx) => idx !== itemIdx);
+      curPkg.feeBreakdown = curBreakdown;
+      const autoTotal = computeAutoTotal(curPkg);
+      curPkg.totalEffectiveFee = autoTotal;
+      curPkg.totalPayable = autoTotal;
+      nextPkgs[selectedPkgIdx] = curPkg;
+      return { ...prev, packages: nextPkgs };
+    });
+  }
+
+  function handleAutoCalculate() {
+    const autoTotal = computeAutoTotal(currentPkg);
+    setPkgDraft((prev) => {
+      const nextPkgs = [...(prev.packages || [])];
       nextPkgs[selectedPkgIdx] = {
         ...nextPkgs[selectedPkgIdx],
-        feeBreakdown: curBreakdown
+        totalEffectiveFee: autoTotal,
+        totalPayable: autoTotal
       };
       return { ...prev, packages: nextPkgs };
     });
@@ -1413,17 +1504,37 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
 
   return (
     <article className="card" style={{ maxWidth: "1050px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <p className="eyebrow">Pricing & Fee Management</p>
-          <h2>Package & Pricing Plans</h2>
+          <h2 style={{ margin: 0 }}>Package & Pricing Plans</h2>
         </div>
+        <button
+          type="button"
+          onClick={handleAddPackage}
+          style={{
+            background: "linear-gradient(90deg, #f89c1c 0%, #fbaf33 100%)",
+            color: "#000",
+            border: "none",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            fontWeight: "800",
+            fontSize: "0.9rem",
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            boxShadow: "0 4px 12px rgba(248, 156, 28, 0.25)"
+          }}
+        >
+          <span>＋</span> Add New Package
+        </button>
       </div>
 
       <form onSubmit={handlePkgSubmit} style={{ display: "grid", gap: "24px" }}>
         {/* Section Main Title */}
         <label style={{ display: "grid", gap: "6px" }}>
-          <strong>Main Section Title</strong>
+          <strong>Main Section Title (Web Page)</strong>
           <input
             type="text"
             value={pkgDraft.title || ""}
@@ -1433,26 +1544,82 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
           />
         </label>
 
-        {/* Plan Selector Dropdown */}
-        <div style={{ background: "rgba(248, 156, 28, 0.08)", padding: "16px 20px", borderRadius: "12px", border: "1px solid rgba(248, 156, 28, 0.3)", display: "flex", alignItems: "center", gap: "16px" }}>
-          <strong style={{ color: "#f89c1c", fontSize: "0.95rem", flexShrink: 0 }}>Select Package Plan to Edit:</strong>
-          <select
-            value={selectedPkgIdx}
-            onChange={(e) => setSelectedPkgIdx(Number(e.target.value))}
-            style={{ flex: 1, padding: "10px 14px", borderRadius: "8px", border: "1px solid #f89c1c", background: "var(--card-bg, #1e1e24)", color: "var(--foreground, #fff)", fontWeight: "700" }}
-          >
-            {packages.map((pkg, idx) => (
-              <option key={pkg.id || idx} value={idx}>
-                {pkg.badge || `Package ${idx + 1}`} ({pkg.totalPayable || pkg.originalPrice})
-              </option>
-            ))}
-          </select>
+        {/* Quick Tabs / Pills for Packages */}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+          <strong style={{ color: "#f89c1c", fontSize: "0.88rem", marginRight: "4px" }}>All Plans ({packages.length}):</strong>
+          {packages.map((pkg, idx) => {
+            const isSelected = selectedPkgIdx === idx;
+            return (
+              <div
+                key={pkg.id || idx}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: isSelected ? "rgba(248, 156, 28, 0.14)" : "var(--input-bg, rgba(0, 0, 0, 0.05))",
+                  border: isSelected ? "1.5px solid #f89c1c" : "1px solid var(--border-color, rgba(0, 0, 0, 0.15))",
+                  borderRadius: "99px",
+                  padding: "6px 14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onClick={() => setSelectedPkgIdx(idx)}
+              >
+                <span style={{ fontSize: "0.84rem", fontWeight: isSelected ? "800" : "600", color: isSelected ? "#e08307" : "var(--foreground, #333333)" }}>
+                  {idx + 1}. {pkg.badge || `Package ${idx + 1}`}
+                </span>
+                {packages.length > 1 && (
+                  <button
+                    type="button"
+                    title="Delete package"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePackage(idx);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: isSelected ? "#e08307" : "var(--muted-text, #888)",
+                      cursor: "pointer",
+                      fontSize: "1rem",
+                      lineHeight: 1,
+                      padding: "0 2px"
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Selected Package Details */}
+        {/* Selected Package Details Box */}
         {currentPkg && (
           <div style={{ display: "grid", gap: "20px", background: "rgba(255, 255, 255, 0.02)", padding: "24px", borderRadius: "14px", border: "1px solid var(--border-color, #333)" }}>
-            <h3 style={{ margin: 0, color: "#f89c1c" }}>Editing: {currentPkg.badge}</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, color: "#f89c1c", fontSize: "1.1rem" }}>
+                Editing Package {selectedPkgIdx + 1}: {currentPkg.badge}
+              </h3>
+              {packages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleDeletePackage(selectedPkgIdx)}
+                  style={{
+                    background: "rgba(255, 77, 77, 0.1)",
+                    border: "1px solid rgba(255, 77, 77, 0.3)",
+                    color: "#ff6b6b",
+                    padding: "6px 14px",
+                    borderRadius: "6px",
+                    fontWeight: "700",
+                    fontSize: "0.82rem",
+                    cursor: "pointer"
+                  }}
+                >
+                  🗑 Delete This Package
+                </button>
+              )}
+            </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <label style={{ display: "grid", gap: "6px" }}>
@@ -1568,39 +1735,61 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
             </div>
 
             {/* Total Payable & CTA */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-              <label style={{ display: "grid", gap: "6px" }}>
-                <strong>Total Effective Fee</strong>
-                <input
-                  type="text"
-                  value={currentPkg.totalEffectiveFee || ""}
-                  onChange={(e) => updatePkgField("totalEffectiveFee", e.target.value)}
-                  placeholder="e.g. ₹65,000*"
-                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
-                />
-              </label>
+            <div style={{ display: "grid", gap: "12px", border: "1px solid rgba(248, 156, 28, 0.25)", padding: "16px", borderRadius: "10px", background: "rgba(248, 156, 28, 0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ color: "#f89c1c", fontSize: "0.95rem" }}>Total Payable & Button CTA</strong>
+                <button
+                  type="button"
+                  onClick={handleAutoCalculate}
+                  style={{
+                    background: "rgba(248, 156, 28, 0.12)",
+                    border: "1px solid #f89c1c",
+                    color: "#e08307",
+                    padding: "4px 12px",
+                    borderRadius: "6px",
+                    fontWeight: "700",
+                    fontSize: "0.82rem",
+                    cursor: "pointer"
+                  }}
+                >
+                  ⚡ Auto-Calculate Totals ({computeAutoTotal(currentPkg)})
+                </button>
+              </div>
 
-              <label style={{ display: "grid", gap: "6px" }}>
-                <strong>Total Payable Display</strong>
-                <input
-                  type="text"
-                  value={currentPkg.totalPayable || ""}
-                  onChange={(e) => updatePkgField("totalPayable", e.target.value)}
-                  placeholder="e.g. ₹65,000*"
-                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
-                />
-              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <strong>Total Effective Fee</strong>
+                  <input
+                    type="text"
+                    value={currentPkg.totalEffectiveFee || ""}
+                    onChange={(e) => updatePkgField("totalEffectiveFee", e.target.value)}
+                    placeholder="e.g. ₹65,000*"
+                    style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                </label>
 
-              <label style={{ display: "grid", gap: "6px" }}>
-                <strong>Button CTA Text</strong>
-                <input
-                  type="text"
-                  value={currentPkg.ctaText || ""}
-                  onChange={(e) => updatePkgField("ctaText", e.target.value)}
-                  placeholder="e.g. APPLY NOW --->"
-                  style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
-                />
-              </label>
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <strong>Total Payable Display</strong>
+                  <input
+                    type="text"
+                    value={currentPkg.totalPayable || ""}
+                    onChange={(e) => updatePkgField("totalPayable", e.target.value)}
+                    placeholder="e.g. ₹65,000*"
+                    style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                </label>
+
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <strong>Button CTA Text</strong>
+                  <input
+                    type="text"
+                    value={currentPkg.ctaText || ""}
+                    onChange={(e) => updatePkgField("ctaText", e.target.value)}
+                    placeholder="e.g. APPLY NOW --->"
+                    style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         )}
@@ -1609,7 +1798,217 @@ function PackagesView({ packageSettings, onSavePackageSettings, isSavingPackage,
 
         <div className="form-actions" style={{ marginTop: "16px" }}>
           <button type="submit" className="primary-button" disabled={isSavingPackage} style={{ padding: "12px 28px", fontSize: "1rem" }}>
-            {isSavingPackage ? "Saving Package Settings..." : "Save Package Settings"}
+            {isSavingPackage ? "Saving Package Settings..." : "Save All Package Settings"}
+          </button>
+        </div>
+      </form>
+    </article>
+  );
+}
+
+const defaultFaqSettings = {
+  sectionTitle: "Frequently Asked Questions",
+  faqs: [
+    {
+      question: "How do I enroll?",
+      answer: "Use Enquire Now or Download Curriculum on the website to get started."
+    },
+    {
+      question: "Is this course offline?",
+      answer: "Yes. The course is offered from Mumbai."
+    },
+    {
+      question: "Will I work on projects?",
+      answer: "Yes. DigiNext uses hands-on, project-led learning."
+    },
+    {
+      question: "Will I receive guidance?",
+      answer: "Yes. Training includes expert support and mentor feedback."
+    }
+  ]
+};
+
+function FaqAdminView({ faqSettings, onSaveFaqSettings, isSavingFaq, faqFeedback }) {
+  const [faqDraft, setFaqDraft] = useState(faqSettings || defaultFaqSettings);
+
+  useEffect(() => {
+    if (faqSettings) {
+      setFaqDraft(faqSettings);
+    }
+  }, [faqSettings]);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    onSaveFaqSettings(faqDraft);
+  }
+
+  function updateField(field, value) {
+    setFaqDraft((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateFaqItem(index, key, value) {
+    setFaqDraft((prev) => {
+      const curFaqs = Array.isArray(prev.faqs) ? [...prev.faqs] : [];
+      curFaqs[index] = { ...curFaqs[index], [key]: value };
+      return { ...prev, faqs: curFaqs };
+    });
+  }
+
+  function addFaqItem() {
+    setFaqDraft((prev) => {
+      const curFaqs = Array.isArray(prev.faqs) ? [...prev.faqs] : [];
+      return {
+        ...prev,
+        faqs: [
+          ...curFaqs,
+          { question: "", answer: "" }
+        ]
+      };
+    });
+  }
+
+  function removeFaqItem(indexToRemove) {
+    if (faqDraft.faqs.length <= 1) {
+      alert("At least one FAQ item must be kept.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this FAQ question?")) {
+      return;
+    }
+    setFaqDraft((prev) => ({
+      ...prev,
+      faqs: prev.faqs.filter((_, idx) => idx !== indexToRemove)
+    }));
+  }
+
+  function moveFaqItem(index, direction) {
+    const newFaqs = [...faqDraft.faqs];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= newFaqs.length) return;
+    const temp = newFaqs[index];
+    newFaqs[index] = newFaqs[targetIndex];
+    newFaqs[targetIndex] = temp;
+    setFaqDraft((prev) => ({ ...prev, faqs: newFaqs }));
+  }
+
+  return (
+    <article className="card" style={{ maxWidth: "1000px", margin: "0 auto" }}>
+      <p className="eyebrow">Website Section Management</p>
+      <h2>Manage Frequently Asked Questions (FAQ)</h2>
+      <p className="field-note">
+        Create, edit, reorder, or remove FAQ questions displayed on the DigiNext main website.
+      </p>
+
+      <form onSubmit={handleSubmit} className="stack-form" style={{ display: "grid", gap: "24px", marginTop: "20px" }}>
+        {/* Section Header Settings */}
+        <label style={{ display: "grid", gap: "6px" }}>
+          <strong>Section Title</strong>
+          <input
+            type="text"
+            value={faqDraft.sectionTitle || ""}
+            onChange={(e) => updateField("sectionTitle", e.target.value)}
+            placeholder="e.g. Frequently Asked Questions"
+            style={{ width: "100%", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            required
+          />
+        </label>
+
+        {/* FAQs List */}
+        <div style={{ display: "grid", gap: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <strong style={{ fontSize: "1.1rem", color: "#f89c1c" }}>FAQ Questions & Answers ({faqDraft.faqs?.length || 0})</strong>
+            <button
+              type="button"
+              onClick={addFaqItem}
+              style={{
+                background: "#f89c1c",
+                color: "#000",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "6px",
+                fontWeight: "700",
+                cursor: "pointer"
+              }}
+            >
+              + Add New Question
+            </button>
+          </div>
+
+          {(faqDraft.faqs || []).map((faq, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                borderRadius: "10px",
+                padding: "16px",
+                display: "grid",
+                gap: "12px"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: "700", color: "#f89c1c", fontSize: "0.9rem" }}>Question #{idx + 1}</span>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    onClick={() => moveFaqItem(idx, -1)}
+                    disabled={idx === 0}
+                    style={{ padding: "2px 8px", cursor: idx === 0 ? "not-allowed" : "pointer", opacity: idx === 0 ? 0.3 : 1 }}
+                    title="Move Up"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveFaqItem(idx, 1)}
+                    disabled={idx === (faqDraft.faqs.length - 1)}
+                    style={{ padding: "2px 8px", cursor: idx === (faqDraft.faqs.length - 1) ? "not-allowed" : "pointer", opacity: idx === (faqDraft.faqs.length - 1) ? 0.3 : 1 }}
+                    title="Move Down"
+                  >
+                    ▼
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeFaqItem(idx)}
+                    style={{ background: "#ff4d4d", color: "#fff", border: "none", padding: "4px 10px", borderRadius: "4px", fontSize: "0.8rem", cursor: "pointer", marginLeft: "8px" }}
+                  >
+                    Delete FAQ
+                  </button>
+                </div>
+              </div>
+
+              <label style={{ display: "grid", gap: "4px" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: "600" }}>Question</span>
+                <input
+                  type="text"
+                  value={faq.question || ""}
+                  onChange={(e) => updateFaqItem(idx, "question", e.target.value)}
+                  placeholder="e.g. How do I enroll in this course?"
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border-color, #ccc)" }}
+                  required
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: "4px" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: "600" }}>Answer</span>
+                <textarea
+                  value={faq.answer || ""}
+                  onChange={(e) => updateFaqItem(idx, "answer", e.target.value)}
+                  placeholder="Enter detailed answer here..."
+                  rows={3}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border-color, #ccc)", fontFamily: "inherit" }}
+                  required
+                />
+              </label>
+            </div>
+          ))}
+        </div>
+
+        {faqFeedback ? <p className={faqFeedback.ok ? "form-feedback" : "form-feedback error"}>{faqFeedback.message}</p> : null}
+
+        <div className="form-actions">
+          <button type="submit" className="primary-button" disabled={isSavingFaq} style={{ padding: "12px 28px", fontSize: "1rem" }}>
+            {isSavingFaq ? "Saving FAQ Settings..." : "Save All FAQ Settings"}
           </button>
         </div>
       </form>
@@ -1651,10 +2050,12 @@ export default function AdminPage() {
   });
   const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculumSettings);
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
+  const [faqSettings, setFaqSettings] = useState(defaultFaqSettings);
   const [settingsFeedback, setSettingsFeedback] = useState(null);
   const [footerFeedback, setFooterFeedback] = useState(null);
   const [curriculumFeedback, setCurriculumFeedback] = useState(null);
   const [packageFeedback, setPackageFeedback] = useState(null);
+  const [faqFeedback, setFaqFeedback] = useState(null);
   const [savingKey, setSavingKey] = useState("");
 
   async function loadAdminData(activeToken) {
@@ -1709,6 +2110,31 @@ export default function AdminPage() {
       if (map.package_settings) {
         setPackageSettings(map.package_settings);
       }
+      if (map.faq_settings) {
+        setFaqSettings(map.faq_settings);
+      }
+    }
+  }
+
+  async function saveFaqSettings(payload) {
+    setSavingKey("faq_settings");
+    setFaqFeedback(null);
+
+    const result = await request("/settings", {
+      method: "PUT",
+      token,
+      body: {
+        key: "faq_settings",
+        valueJson: payload
+      }
+    });
+
+    setSavingKey("");
+    if (result.ok) {
+      setFaqSettings(payload);
+      setFaqFeedback({ ok: true, message: "FAQ settings updated successfully!" });
+    } else {
+      setFaqFeedback({ ok: false, message: result.error || "Failed to update FAQ settings" });
     }
   }
 
@@ -2143,7 +2569,7 @@ export default function AdminPage() {
     setTeacherFeedback(null);
   }
 
-  const navigation = ["Dashboard", "Packages", "Curriculum", "Settings"];
+  const navigation = ["Dashboard", "Packages", "Curriculum", "FAQ", "Settings"];
 
   if (booting) {
     return <main className="loading-shell">Loading admin workspace...</main>;
@@ -2199,6 +2625,14 @@ export default function AdminPage() {
             onSaveCurriculumSettings={saveCurriculumSettings}
             isSavingCurriculum={savingKey === "curriculum_settings"}
             curriculumFeedback={curriculumFeedback}
+          />
+        ) : null}
+        {activeView === "FAQ" ? (
+          <FaqAdminView
+            faqSettings={faqSettings}
+            onSaveFaqSettings={saveFaqSettings}
+            isSavingFaq={savingKey === "faq_settings"}
+            faqFeedback={faqFeedback}
           />
         ) : null}
         {activeView === "Settings" ? (
