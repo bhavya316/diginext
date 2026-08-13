@@ -760,9 +760,197 @@ const defaultPackageSettings = {
   ]
 };
 
+function PackageCard({ pkg, idx, onOpenModal }) {
+  return (
+    <div
+      className="package-card"
+      style={{
+        background: "#111116",
+        border: "1px solid rgba(255, 255, 255, 0.12)",
+        borderRadius: "14px",
+        overflow: "hidden",
+        boxShadow: "0 10px 28px rgba(0, 0, 0, 0.45)",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        boxSizing: "border-box"
+      }}
+    >
+      {/* Top Inner Content Area */}
+      <div style={{ padding: "18px 20px 14px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Pill Badge */}
+        <div style={{ marginBottom: "8px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(255, 255, 255, 0.08)",
+              border: "1px solid rgba(255, 255, 255, 0.16)",
+              padding: "4px 12px",
+              borderRadius: "99px",
+              fontSize: "0.78rem",
+              fontWeight: "600",
+              color: "#ffffff"
+            }}
+          >
+            <span>{idx === 0 ? "🏆" : "💳"}</span>
+            <span>{pkg.badge}</span>
+          </div>
+        </div>
+
+        {/* Subtitle */}
+        {pkg.subtitle && (
+          <div style={{ fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.55)", marginBottom: "2px" }}>
+            {pkg.subtitle}
+          </div>
+        )}
+
+        {/* Base Price & Tax Note */}
+        <div style={{ marginBottom: "12px" }}>
+          <div style={{ fontSize: "2.1rem", fontWeight: "900", color: "#ffffff", lineHeight: "1.05", letterSpacing: "-0.02em" }}>
+            {pkg.originalPrice}
+          </div>
+          {pkg.taxNote && (
+            <div style={{ fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "1px" }}>
+              {pkg.taxNote}
+            </div>
+          )}
+        </div>
+
+        {/* Dashed Highlight Banner */}
+        {(pkg.highlightBannerTitle || pkg.highlightBannerText) && (
+          <div
+            style={{
+              background: "rgba(248, 156, 28, 0.04)",
+              border: "1px dashed rgba(248, 156, 28, 0.35)",
+              borderRadius: "8px",
+              padding: "10px 12px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "10px",
+              marginBottom: "12px"
+            }}
+          >
+            <span style={{ fontSize: "1.2rem", lineHeight: "1" }}>🎓</span>
+            <div>
+              {pkg.highlightBannerTitle && (
+                <div style={{ color: "#f89c1c", fontWeight: "700", fontSize: "0.8rem", marginBottom: "2px" }}>
+                  {pkg.highlightBannerTitle}
+                </div>
+              )}
+              {pkg.highlightBannerText && (
+                <div style={{ color: "rgba(255, 255, 255, 0.68)", fontSize: "0.72rem", lineHeight: "1.3" }}>
+                  {pkg.highlightBannerText}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Thin Line Separator */}
+        <div style={{ height: "1px", background: "rgba(255, 255, 255, 0.08)", margin: "0 0 12px 0" }} />
+
+        {/* Fee Breakdown List */}
+        <div style={{ marginTop: "auto", marginBottom: "12px" }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: "800", letterSpacing: "0.08em", color: "rgba(255, 255, 255, 0.55)", marginBottom: "8px" }}>
+            FEE BREAKDOWN
+          </div>
+
+          {(pkg.feeBreakdown || []).map((item, fIdx) => (
+            <div key={fIdx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", marginBottom: "6px" }}>
+              <span style={{ color: item.isDiscount ? "#f89c1c" : "rgba(255, 255, 255, 0.8)", fontWeight: item.isDiscount ? "700" : "400" }}>
+                {item.label}
+              </span>
+              <span style={{ color: item.isDiscount ? "#f89c1c" : "#ffffff", fontWeight: "700" }}>
+                {item.amount}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Total Effective Program Fee */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
+          <span style={{ fontSize: "0.92rem", fontWeight: "800", color: "#ffffff" }}>Total Effective Program Fee</span>
+          <span style={{ fontSize: "1.18rem", fontWeight: "900", color: "#ffffff" }}>{pkg.totalEffectiveFee}</span>
+        </div>
+      </div>
+
+      {/* Bottom Dark Total Payable Box & CTA */}
+      <div
+        style={{
+          background: "radial-gradient(circle at center, #0c0c10 0%, #060608 100%)",
+          padding: "14px 20px 16px 20px",
+          borderTop: "1px dashed rgba(255, 255, 255, 0.15)",
+          textAlign: "center"
+        }}
+      >
+        <div style={{ fontSize: "0.66rem", fontWeight: "800", color: "rgba(255, 255, 255, 0.55)", letterSpacing: "0.08em", marginBottom: "2px" }}>
+          TOTAL PAYABLE
+        </div>
+        <div style={{ fontSize: "1.9rem", fontWeight: "900", color: "#ffffff", lineHeight: "1" }}>
+          {pkg.totalPayable}
+        </div>
+        <div style={{ fontSize: "0.7rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "2px", marginBottom: "12px" }}>
+          {pkg.totalPayableNote || "Inclusive of 18% GST"}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onOpenModal && onOpenModal("CALLBACK")}
+          style={{
+            width: "100%",
+            background: "linear-gradient(90deg, #f89c1c 0%, #fbaf33 100%)",
+            color: "#000000",
+            border: "none",
+            padding: "10px",
+            borderRadius: "7px",
+            fontWeight: "900",
+            fontSize: "0.88rem",
+            letterSpacing: "0.04em",
+            cursor: "pointer",
+            boxShadow: "0 4px 14px rgba(248, 156, 28, 0.28)",
+            transition: "all 0.2s ease"
+          }}
+        >
+          {pkg.ctaText || "APPLY NOW --->"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PackagesSection({ packageSettings, onOpenModal }) {
   const data = packageSettings || defaultPackageSettings;
   const packages = Array.isArray(data.packages) && data.packages.length > 0 ? data.packages : defaultPackageSettings.packages;
+
+  const [activePackageIndex, setActivePackageIndex] = useState(0);
+
+  // Swipe gesture support
+  const [dragStartX, setDragStartX] = useState(null);
+
+  const handleNextPackage = () => {
+    setActivePackageIndex((prev) => Math.min(packages.length - 1, prev + 1));
+  };
+
+  const handlePrevPackage = () => {
+    setActivePackageIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleSwipeStart = (clientX) => {
+    setDragStartX(clientX);
+  };
+
+  const handleSwipeEnd = (clientX) => {
+    if (dragStartX === null) return;
+    const diff = dragStartX - clientX;
+    if (diff > 40) {
+      handleNextPackage();
+    } else if (diff < -40) {
+      handlePrevPackage();
+    }
+    setDragStartX(null);
+  };
 
   return (
     <section
@@ -774,171 +962,77 @@ function PackagesSection({ packageSettings, onOpenModal }) {
         scrollMarginTop: "88px"
       }}
     >
-      <div className="shell" style={{ maxWidth: "940px", margin: "0 auto", padding: "0 16px" }}>
-        <div className="section-heading" style={{ textAlign: "center", marginBottom: "24px" }}>
+      <div className="shell" style={{ maxWidth: "980px", margin: "0 auto", padding: "0 12px" }}>
+        <div className="section-heading" style={{ textAlign: "center", marginBottom: "28px" }}>
           <h2 style={{ fontSize: "1.9rem", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em" }}>
             {data.title || "What will these 6 Months Cost?"}
           </h2>
           <div className="rule" style={{ margin: "10px auto 0", width: "45px", height: "3px", background: "#f89c1c", borderRadius: "2px" }} />
         </div>
 
-        <div className="packages-grid">
+        {/* DESKTOP VIEW: Clean Side-by-Side Grid (Hidden on Mobile) */}
+        <div className="desktop-packages-grid">
           {packages.map((pkg, idx) => (
-            <div
-              key={pkg.id || idx}
-              className="package-card"
-              style={{
-                background: "#111116",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                borderRadius: "14px",
-                overflow: "hidden",
-                boxShadow: "0 10px 28px rgba(0, 0, 0, 0.45)",
-                display: "flex",
-                flexDirection: "column"
-              }}
-            >
-              {/* Top Inner Content Area */}
-              <div style={{ padding: "18px 20px 14px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
-                {/* Pill Badge */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      background: "rgba(255, 255, 255, 0.08)",
-                      border: "1px solid rgba(255, 255, 255, 0.16)",
-                      padding: "4px 12px",
-                      borderRadius: "99px",
-                      fontSize: "0.78rem",
-                      fontWeight: "600",
-                      color: "#ffffff"
-                    }}
-                  >
-                    <span>{idx === 0 ? "🏆" : "💳"}</span>
-                    <span>{pkg.badge}</span>
-                  </div>
-                </div>
+            <PackageCard key={pkg.id || idx} pkg={pkg} idx={idx} onOpenModal={onOpenModal} />
+          ))}
+        </div>
 
-                {/* Subtitle */}
-                {pkg.subtitle && (
-                  <div style={{ fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.55)", marginBottom: "2px" }}>
-                    {pkg.subtitle}
-                  </div>
-                )}
+        {/* MOBILE VIEW: Horizontal Slider with Floating Side Arrow Buttons (Hidden on Desktop) */}
+        <div className="mobile-packages-slider">
+          <div className="package-card-wrapper">
+            {/* Left Arrow Navigation Button */}
+            {packages.length > 1 && (
+              <button
+                type="button"
+                className="package-floating-arrow prev"
+                onClick={handlePrevPackage}
+                disabled={activePackageIndex === 0}
+                title="Previous Package"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            )}
 
-                {/* Base Price & Tax Note */}
-                <div style={{ marginBottom: "12px" }}>
-                  <div style={{ fontSize: "2.1rem", fontWeight: "900", color: "#ffffff", lineHeight: "1.05", letterSpacing: "-0.02em" }}>
-                    {pkg.originalPrice}
-                  </div>
-                  {pkg.taxNote && (
-                    <div style={{ fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "1px" }}>
-                      {pkg.taxNote}
-                    </div>
-                  )}
-                </div>
-
-                {/* Dashed Highlight Banner */}
-                {(pkg.highlightBannerTitle || pkg.highlightBannerText) && (
-                  <div
-                    style={{
-                      background: "rgba(248, 156, 28, 0.04)",
-                      border: "1px dashed rgba(248, 156, 28, 0.35)",
-                      borderRadius: "8px",
-                      padding: "10px 12px",
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "10px",
-                      marginBottom: "12px"
-                    }}
-                  >
-                    <span style={{ fontSize: "1.2rem", lineHeight: "1" }}>🎓</span>
-                    <div>
-                      {pkg.highlightBannerTitle && (
-                        <div style={{ color: "#f89c1c", fontWeight: "700", fontSize: "0.8rem", marginBottom: "2px" }}>
-                          {pkg.highlightBannerTitle}
-                        </div>
-                      )}
-                      {pkg.highlightBannerText && (
-                        <div style={{ color: "rgba(255, 255, 255, 0.68)", fontSize: "0.72rem", lineHeight: "1.3" }}>
-                          {pkg.highlightBannerText}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Thin Line Separator */}
-                <div style={{ height: "1px", background: "rgba(255, 255, 255, 0.08)", margin: "0 0 12px 0" }} />
-
-                {/* Fee Breakdown List */}
-                <div style={{ marginTop: "auto", marginBottom: "12px" }}>
-                  <div style={{ fontSize: "0.7rem", fontWeight: "800", letterSpacing: "0.08em", color: "rgba(255, 255, 255, 0.55)", marginBottom: "8px" }}>
-                    FEE BREAKDOWN
-                  </div>
-
-                  {(pkg.feeBreakdown || []).map((item, fIdx) => (
-                    <div key={fIdx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", marginBottom: "6px" }}>
-                      <span style={{ color: item.isDiscount ? "#f89c1c" : "rgba(255, 255, 255, 0.8)", fontWeight: item.isDiscount ? "700" : "400" }}>
-                        {item.label}
-                      </span>
-                      <span style={{ color: item.isDiscount ? "#f89c1c" : "#ffffff", fontWeight: "700" }}>
-                        {item.amount}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Total Effective Program Fee */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                  <span style={{ fontSize: "0.92rem", fontWeight: "800", color: "#ffffff" }}>Total Effective Program Fee</span>
-                  <span style={{ fontSize: "1.18rem", fontWeight: "900", color: "#ffffff" }}>{pkg.totalEffectiveFee}</span>
-                </div>
-              </div>
-
-              {/* Bottom Dark Total Payable Box & CTA */}
+            {/* Slider Viewport */}
+            <div className="package-slider-viewport">
               <div
+                className="package-slider-track"
                 style={{
-                  background: "radial-gradient(circle at center, #0c0c10 0%, #060608 100%)",
-                  padding: "14px 20px 16px 20px",
-                  borderTop: "1px dashed rgba(255, 255, 255, 0.15)",
-                  textAlign: "center"
+                  transform: `translateX(-${activePackageIndex * 100}%)`
                 }}
               >
-                <div style={{ fontSize: "0.66rem", fontWeight: "800", color: "rgba(255, 255, 255, 0.55)", letterSpacing: "0.08em", marginBottom: "2px" }}>
-                  TOTAL PAYABLE
-                </div>
-                <div style={{ fontSize: "1.9rem", fontWeight: "900", color: "#ffffff", lineHeight: "1" }}>
-                  {pkg.totalPayable}
-                </div>
-                <div style={{ fontSize: "0.7rem", color: "rgba(255, 255, 255, 0.45)", marginTop: "2px", marginBottom: "12px" }}>
-                  {pkg.totalPayableNote || "Inclusive of 18% GST"}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onOpenModal && onOpenModal("CALLBACK")}
-                  style={{
-                    width: "100%",
-                    background: "linear-gradient(90deg, #f89c1c 0%, #fbaf33 100%)",
-                    color: "#000000",
-                    border: "none",
-                    padding: "10px",
-                    borderRadius: "7px",
-                    fontWeight: "900",
-                    fontSize: "0.88rem",
-                    letterSpacing: "0.04em",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(248, 156, 28, 0.28)",
-                    transition: "all 0.2s ease"
-                  }}
-                >
-                  {pkg.ctaText || "APPLY NOW --->"}
-                </button>
+                {packages.map((pkg, idx) => (
+                  <div
+                    key={pkg.id || idx}
+                    className="package-slide-item"
+                    onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
+                    onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
+                    onMouseDown={(e) => handleSwipeStart(e.clientX)}
+                    onMouseUp={(e) => handleSwipeEnd(e.clientX)}
+                  >
+                    <PackageCard pkg={pkg} idx={idx} onOpenModal={onOpenModal} />
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+
+            {/* Right Arrow Navigation Button */}
+            {packages.length > 1 && (
+              <button
+                type="button"
+                className="package-floating-arrow next"
+                onClick={handleNextPackage}
+                disabled={activePackageIndex === packages.length - 1}
+                title="Next Package"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -1070,7 +1164,9 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
             disabled={activeWeekIndex === 0 && activeEpIndex === 0}
             title="Previous Episode/Week"
           >
-            ‹
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
 
           <div
@@ -1101,23 +1197,22 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
                     display: "flex", flexDirection: "column"
                   }}
                 >
-                  {/* Top Split Section */}
-                  <div className="variant-6-top" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", width: "100%", minHeight: "280px" }}>
-
+                  {/* Top Split Section (Side by side on both mobile & desktop) */}
+                  <div className="variant-6-top">
                     {/* Left Info Area */}
-                    <div className="variant-6-left" style={{ flex: "1 1 300px", display: "flex", flexDirection: "column", justifyContent: "center", background: "#0d0d12", zIndex: 1 }}>
-                      <div style={{ color: "#f89c1c", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "16px" }}>
+                    <div className="variant-6-left">
+                      <div className="curriculum-tag" style={{ color: "#f89c1c", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                         {ep.tag}
                       </div>
-                      <div style={{ width: "24px", height: "2px", background: "#f89c1c", marginBottom: "24px" }} />
+                      <div className="rule-line" style={{ width: "24px", height: "2px", background: "#f89c1c" }} />
 
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
-                        <span style={{ color: "#f89c1c", fontSize: "0.9rem", fontWeight: "700", letterSpacing: "0.05em" }}>WEEK</span>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-                          <span style={{ color: "#f89c1c", fontSize: "4rem", fontWeight: "700", lineHeight: "1" }}>{ep.weekNumber}</span>
-                          <div style={{ display: "flex", flexDirection: "column", paddingBottom: "4px" }}>
-                            <h3 style={{ fontSize: "1.6rem", fontWeight: "700", color: "#ffffff", margin: 0, lineHeight: "1.3" }}>
-                              <span style={{ fontWeight: "400", opacity: 0.8, marginRight: "8px" }}>EP:{ep.episodeNumber || ep.epIdx + 1}</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                        <span className="week-label" style={{ color: "#f89c1c", fontWeight: "700", letterSpacing: "0.05em" }}>WEEK</span>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+                          <span className="week-num" style={{ color: "#f89c1c", fontWeight: "700", lineHeight: "1" }}>{ep.weekNumber}</span>
+                          <div style={{ display: "flex", flexDirection: "column", paddingBottom: "2px" }}>
+                            <h3 className="ep-title" style={{ fontWeight: "700", color: "#ffffff", margin: 0 }}>
+                              <span style={{ fontWeight: "400", opacity: 0.8, marginRight: "6px" }}>EP:{ep.episodeNumber || ep.epIdx + 1}</span>
                               <br className="hidden md:block" />
                               {ep.title}
                             </h3>
@@ -1129,25 +1224,17 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
                     {/* Right Image Area */}
                     <div
                       className="variant-6-right"
-                      style={{ flex: "1 1 300px", position: "relative", cursor: "pointer", overflow: "hidden" }}
                       onClick={(e) => { e.stopPropagation(); if (onOpenModal) onOpenModal("CALLBACK"); }}
                     >
                       <img
                         src={ep.thumbnail || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"}
                         alt={ep.title}
-                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", opacity: 0.8 }}
                       />
                       {/* Gradient to blend image into left side */}
-                      <div className="variant-6-gradient" style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "120px", background: "linear-gradient(to right, #0d0d12 0%, transparent 100%)" }} />
+                      <div className="variant-6-gradient" />
 
-                      {/* Variant 6 Play Button */}
-                      <div style={{
-                        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-                        width: "60px", height: "60px", background: "#f89c1c", borderRadius: "50%",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: "0 8px 24px rgba(248, 156, 28, 0.4)",
-                        transition: "transform 0.2s ease"
-                      }}>
+                      {/* Variant 6 Play Button Circle */}
+                      <div className="variant-6-play-circle">
                         <svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" style={{ marginLeft: "4px" }}>
                           <path d="M8 5v14l11-7z" />
                         </svg>
@@ -1215,7 +1302,9 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
             onClick={handleNextEpisode}
             title="Next Episode/Week"
           >
-            ›
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
 
@@ -1383,38 +1472,124 @@ function TechnologiesSection({ course }) {
   );
 }
 
-function TeachersSection() {
+function TeachersSection({ teachers }) {
+  const teacherList = (Array.isArray(teachers) && teachers.length > 0 && teachers.some(t => t.photoUrl))
+    ? teachers.filter(t => t.photoUrl)
+    : [
+        { id: "1", name: "Mervin Agera", photoUrl: "/teacher-mervin.jpg" },
+        { id: "2", name: "Terrence D'Mello", photoUrl: "/teacher-terrence.jpg" }
+      ];
+
+  const [activeTeacherIndex, setActiveTeacherIndex] = useState(0);
+
+  const handleNextTeacher = () => {
+    setActiveTeacherIndex((prev) => Math.min(teacherList.length - 1, prev + 1));
+  };
+
+  const handlePrevTeacher = () => {
+    setActiveTeacherIndex((prev) => Math.max(0, prev - 1));
+  };
+
   return (
-    <section id="teachers" className="section">
-      <div className="shell">
-        <div className="section-heading">
-          <h2>Teachers</h2>
-          <div className="rule" />
+    <section id="teachers" className="section" style={{ padding: "48px 0 56px", background: "#0a0a0d" }}>
+      <div className="shell" style={{ maxWidth: "1020px", margin: "0 auto", padding: "0 16px" }}>
+        <div className="section-heading" style={{ textAlign: "center", marginBottom: "32px" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em" }}>Teachers</h2>
+          <div className="rule" style={{ margin: "10px auto 0", width: "45px", height: "3px", background: "#f89c1c", borderRadius: "2px" }} />
         </div>
-        <div
-          className="teachers-carousel"
-          style={{
-            display: "flex",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            gap: "24px",
-            paddingBottom: "24px",
-            WebkitOverflowScrolling: "touch",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none"
-          }}
-        >
-          <style dangerouslySetInnerHTML={{
-            __html: `
-            .teachers-carousel::-webkit-scrollbar {
-              display: none;
-            }
-          `}} />
-          <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
-            <img src="/teacher-mervin.jpg" alt="Mervin Agera" style={{ width: "100%", height: "auto", borderRadius: "12px", display: "block", margin: "0 auto" }} />
-          </div>
-          <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
-            <img src="/teacher-terrence.jpg" alt="Terrence D'Mello" style={{ width: "100%", height: "auto", borderRadius: "12px", display: "block", margin: "0 auto" }} />
+
+        {/* DESKTOP VIEW: Side-by-Side Centered Grid with Capped Card Sizes */}
+        <div className="desktop-teachers-grid">
+          {teacherList.map((teacher, idx) => (
+            <div
+              key={teacher.id || idx}
+              className="teacher-card"
+              style={{
+                maxWidth: "440px",
+                width: "100%",
+                borderRadius: "16px",
+                overflow: "hidden",
+                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.5)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                background: "#111116"
+              }}
+            >
+              <img
+                src={teacher.photoUrl}
+                alt={teacher.name || "Teacher"}
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: "16px" }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* MOBILE VIEW: Horizontal Slider with Centered Overlay SVG Arrows */}
+        <div className="mobile-teachers-slider">
+          <div className="package-card-wrapper" style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
+            {teacherList.length > 1 && (
+              <button
+                type="button"
+                className="package-floating-arrow prev"
+                onClick={handlePrevTeacher}
+                disabled={activeTeacherIndex === 0}
+                title="Previous Teacher"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            )}
+
+            <div className="package-slider-viewport" style={{ flex: 1, overflow: "hidden", borderRadius: "16px", width: "100%" }}>
+              <div
+                className="package-slider-track"
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  transition: "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                  transform: `translateX(-${activeTeacherIndex * 100}%)`
+                }}
+              >
+                {teacherList.map((teacher, idx) => (
+                  <div
+                    key={teacher.id || idx}
+                    style={{ flex: "0 0 100%", width: "100%", boxSizing: "border-box" }}
+                  >
+                    <div
+                      style={{
+                        maxWidth: "480px",
+                        margin: "0 auto",
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        boxShadow: "0 10px 28px rgba(0,0,0,0.5)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        background: "#111116"
+                      }}
+                    >
+                      <img
+                        src={teacher.photoUrl}
+                        alt={teacher.name || "Teacher"}
+                        style={{ width: "100%", height: "auto", display: "block", borderRadius: "16px" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {teacherList.length > 1 && (
+              <button
+                type="button"
+                className="package-floating-arrow next"
+                onClick={handleNextTeacher}
+                disabled={activeTeacherIndex === teacherList.length - 1}
+                title="Next Teacher"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1422,24 +1597,34 @@ function TeachersSection() {
   );
 }
 
-function FaqSection({ items, openFaq, setOpenFaq, onOpenModal }) {
+function FaqSection({ faqSettings, fallbackFaqs, openFaq, setOpenFaq, onOpenModal }) {
+  const faqs = (faqSettings && Array.isArray(faqSettings.faqs) && faqSettings.faqs.length > 0)
+    ? faqSettings.faqs
+    : (fallbackFaqs || []);
+
+  const sectionTitle = faqSettings?.sectionTitle || "Frequently Asked Questions";
+
   return (
     <section className="section faq-section" id="faq">
       <div className="shell">
         <div className="section-heading">
-          <h2>Frequently Asked Questions</h2>
+          <h2>{sectionTitle}</h2>
           <div className="rule" />
         </div>
         <div className="faq-list">
-          {items.map(([question, answer], index) => (
-            <div key={question} className="faq-item">
-              <button type="button" className="faq-trigger" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
-                <span>{question}</span>
-                <span>{openFaq === index ? "−" : "+"}</span>
-              </button>
-              {openFaq === index ? <p className="faq-answer">{answer}</p> : null}
-            </div>
-          ))}
+          {faqs.map((faqItem, index) => {
+            const question = Array.isArray(faqItem) ? faqItem[0] : faqItem.question;
+            const answer = Array.isArray(faqItem) ? faqItem[1] : faqItem.answer;
+            return (
+              <div key={question || index} className="faq-item">
+                <button type="button" className="faq-trigger" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+                  <span>{question}</span>
+                  <span>{openFaq === index ? "−" : "+"}</span>
+                </button>
+                {openFaq === index ? <p className="faq-answer">{answer}</p> : null}
+              </div>
+            );
+          })}
         </div>
         <div className="callback-card">
           <h3>Still have questions or need more information?</h3>
@@ -1699,6 +1884,7 @@ export default function Page() {
   });
   const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculum);
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
+  const [faqSettings, setFaqSettings] = useState(null);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -1737,6 +1923,9 @@ export default function Page() {
       }
       if (settingsMap.package_settings) {
         setPackageSettings(settingsMap.package_settings);
+      }
+      if (settingsMap.faq_settings) {
+        setFaqSettings(settingsMap.faq_settings);
       }
     }
 
@@ -1798,7 +1987,7 @@ export default function Page() {
       <LearningSection items={activeCourse.learningItems} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <TechnologiesSection course={activeCourse} />
       <TeachersSection teachers={teachers} />
-      <FaqSection items={activeCourse.faqs} openFaq={openFaq} setOpenFaq={setOpenFaq} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
+      <FaqSection faqSettings={faqSettings} fallbackFaqs={activeCourse.faqs} openFaq={openFaq} setOpenFaq={setOpenFaq} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <Footer brand={brand} onOpenContact={openContactModal} />
       <MobileDock onOpenContact={openContactModal} />
       {modal ? <ActionModal courses={courses} initialCourseSlug={modal.slug} initialRequestType={modal.type} onClose={() => setModal(null)} onSubmitLead={submitLead} /> : null}
