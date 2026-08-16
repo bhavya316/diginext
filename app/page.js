@@ -552,22 +552,32 @@ function Header({ brand, onOpenContact }) {
   useEffect(() => {
     function handleScroll() {
       const currentScrollY = window.scrollY;
+      const isMobile = window.innerWidth <= 768;
 
-      if (currentScrollY <= 20) {
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 70) {
-        // Scrolling DOWN -> Hide header
-        setIsVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        // Scrolling UP -> Reveal header
-        setIsVisible(true);
+      if (isMobile) {
+        // On mobile view: Header is ONLY visible when at top of page (scrollY <= 20)
+        setIsVisible(currentScrollY <= 20);
+      } else {
+        // On desktop view: Header stays visible at top or when scrolling up
+        if (currentScrollY <= 20) {
+          setIsVisible(true);
+        } else if (currentScrollY > lastScrollY && currentScrollY > 70) {
+          setIsVisible(false);
+        } else if (currentScrollY < lastScrollY) {
+          setIsVisible(true);
+        }
       }
 
       setLastScrollY(currentScrollY);
     }
 
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [lastScrollY]);
 
   return (
@@ -581,14 +591,16 @@ function Header({ brand, onOpenContact }) {
       <div className="shell">
         <div className="header-row">
           <a href="#" className="brand" aria-label="DGNext home">
-            <Image src={logo} alt="DigiNext Logo" width={220} height={54} priority className="brand-logo" />
+            <Image src={logo} alt="DigiNext Logo" width={160} height={40} priority className="brand-logo" style={{ height: "40px", width: "auto", objectFit: "contain" }} />
           </a>
           <nav className="desktop-nav">
             <a href="#">Home</a>
             <a href="#about">About</a>
             <a href="#courses">Courses</a>
-            <a href="#teachers">Teachers</a>
             <a href="#pricing">Pricing</a>
+            <a href="#teachers">Teachers</a>
+            <a href="#faq">FAQs</a>
+
           </nav>
           <div className="header-actions">
             <button type="button" className="contact-link" onClick={onOpenContact}>
@@ -686,7 +698,7 @@ function getYouTubeEmbedUrl(url) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = trimmed.match(regExp);
   const videoId = match && match[2].length === 11 ? match[2] : (trimmed.length === 11 ? trimmed : null);
-  return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0` : null;
+  return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0` : null;
 }
 
 function VideoSection({ videoSettings }) {
@@ -702,6 +714,7 @@ function VideoSection({ videoSettings }) {
                 src={embedUrl}
                 title="DigiNext Video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             ) : (
@@ -1235,7 +1248,7 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
 
                       {/* Variant 6 Play Button Circle */}
                       <div className="variant-6-play-circle">
-                        <svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" style={{ marginLeft: "4px" }}>
+                        <svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" style={{ display: "block", marginLeft: "1px" }}>
                           <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
@@ -1359,10 +1372,7 @@ function CurriculumSection({ curriculumSettings, onOpenModal }) {
           </div>
         </div>
 
-        {/* Dashed Line Divider */}
-        <div className="curriculum-divider">
-          <div className="dashed-line" />
-        </div>
+
       </div>
     </section>
   );
@@ -1476,9 +1486,9 @@ function TeachersSection({ teachers }) {
   const teacherList = (Array.isArray(teachers) && teachers.length > 0 && teachers.some(t => t.photoUrl))
     ? teachers.filter(t => t.photoUrl)
     : [
-        { id: "1", name: "Mervin Agera", photoUrl: "/teacher-mervin.jpg" },
-        { id: "2", name: "Terrence D'Mello", photoUrl: "/teacher-terrence.jpg" }
-      ];
+      { id: "1", name: "Mervin Agera", photoUrl: "/teacher-mervin.jpg" },
+      { id: "2", name: "Terrence D'Mello", photoUrl: "/teacher-terrence.jpg" }
+    ];
 
   const [activeTeacherIndex, setActiveTeacherIndex] = useState(0);
 
@@ -1795,7 +1805,11 @@ function ActionModal({ courses, initialCourseSlug, initialRequestType, onClose, 
   );
 }
 
-function Footer({ brand, onOpenContact }) {
+function Footer({ footerSettings, brand, onOpenContact }) {
+  const instagramUrl = footerSettings?.instagramUrl || "#";
+  const facebookUrl = footerSettings?.facebookUrl || "#";
+  const linkedinUrl = footerSettings?.linkedinUrl || "#";
+
   return (
     <footer className="site-footer" style={{ background: "#0a0a0a", color: "#f5f5f5", padding: "60px 0 40px", borderTop: "none" }}>
       <div className="shell" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
@@ -1819,13 +1833,13 @@ function Footer({ brand, onOpenContact }) {
 
           {/* Socials */}
           <div style={{ display: "flex", gap: "20px", flex: "1", minWidth: "150px" }}>
-            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+            <a href={instagramUrl} target={instagramUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </a>
-            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+            <a href={facebookUrl} target={facebookUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
             </a>
-            <a href="#" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+            <a href={linkedinUrl} target={linkedinUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
             </a>
           </div>
@@ -1885,6 +1899,7 @@ export default function Page() {
   const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculum);
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
   const [faqSettings, setFaqSettings] = useState(null);
+  const [footerSettings, setFooterSettings] = useState(null);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -1926,6 +1941,9 @@ export default function Page() {
       }
       if (settingsMap.faq_settings) {
         setFaqSettings(settingsMap.faq_settings);
+      }
+      if (settingsMap.footer_settings) {
+        setFooterSettings(settingsMap.footer_settings);
       }
     }
 
@@ -1988,7 +2006,7 @@ export default function Page() {
       <TechnologiesSection course={activeCourse} />
       <TeachersSection teachers={teachers} />
       <FaqSection faqSettings={faqSettings} fallbackFaqs={activeCourse.faqs} openFaq={openFaq} setOpenFaq={setOpenFaq} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
-      <Footer brand={brand} onOpenContact={openContactModal} />
+      <Footer footerSettings={footerSettings} brand={brand} onOpenContact={openContactModal} />
       <MobileDock onOpenContact={openContactModal} />
       {modal ? <ActionModal courses={courses} initialCourseSlug={modal.slug} initialRequestType={modal.type} onClose={() => setModal(null)} onSubmitLead={submitLead} /> : null}
     </main>

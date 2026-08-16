@@ -1,8 +1,13 @@
-export default async function ThankYouPage({ searchParams }) {
-  const params = await searchParams;
-  const phone = params?.phone || "+91 98765 43210";
-  const request = params?.request || "callback";
-  const course = params?.course || "your selected course";
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
+function ThankYouContent() {
+  const searchParams = useSearchParams();
+  const phone = searchParams.get("phone") || "+91 98765 43210";
+  const request = searchParams.get("request") || "callback";
+  const course = searchParams.get("course") || "your selected course";
 
   return (
     <main className="thank-you-shell">
@@ -25,5 +30,13 @@ export default async function ThankYouPage({ searchParams }) {
         </a>
       </section>
     </main>
+  );
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense fallback={<main className="thank-you-shell"><section className="thank-you-card"><h1>Thank you!</h1></section></main>}>
+      <ThankYouContent />
+    </Suspense>
   );
 }
