@@ -159,8 +159,8 @@ function createEmptyTeacher() {
 }
 
 function LoginView({ onLogin, authError, isSubmitting }) {
-  const [email, setEmail] = useState("admin@diginext.local");
-  const [password, setPassword] = useState("DigiNext@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <main className="login-shell">
@@ -177,11 +177,11 @@ function LoginView({ onLogin, authError, isSubmitting }) {
         >
           <label>
             <span>Email</span>
-            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
+            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="Enter admin email" required />
           </label>
           <label>
             <span>Password</span>
-            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
+            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Enter admin password" required />
           </label>
           {authError ? <p className="form-message error">{authError}</p> : null}
           <button type="submit" className="primary-action" disabled={isSubmitting}>
@@ -1180,7 +1180,7 @@ function SettingsView({
   footerFeedback,
   onUpdatePassword
 }) {
-  const [footerDraft, setFooterDraft] = useState(footerSettings || { instagramUrl: "", facebookUrl: "", linkedinUrl: "" });
+  const [footerDraft, setFooterDraft] = useState(footerSettings || { instagramUrl: "", facebookUrl: "", youtubeUrl: "", linkedinUrl: "", googleMapUrl: "" });
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -1243,12 +1243,32 @@ function SettingsView({
             />
           </label>
           <label style={{ display: "grid", gap: "6px" }}>
+            <strong>YouTube URL</strong>
+            <input
+              type="text"
+              placeholder="https://youtube.com/..."
+              value={footerDraft.youtubeUrl || ""}
+              onChange={(e) => setFooterDraft((current) => ({ ...current, youtubeUrl: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: "6px" }}>
             <strong>LinkedIn URL</strong>
             <input
               type="text"
               placeholder="https://linkedin.com/..."
               value={footerDraft.linkedinUrl || ""}
               onChange={(e) => setFooterDraft((current) => ({ ...current, linkedinUrl: e.target.value }))}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: "6px" }}>
+            <strong>Google Map URL</strong>
+            <input
+              type="text"
+              placeholder="https://maps.google.com/..."
+              value={footerDraft.googleMapUrl || ""}
+              onChange={(e) => setFooterDraft((current) => ({ ...current, googleMapUrl: e.target.value }))}
               style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color, #ccc)" }}
             />
           </label>
@@ -2046,7 +2066,9 @@ export default function AdminPage() {
   const [footerSettings, setFooterSettings] = useState({
     instagramUrl: "",
     facebookUrl: "",
-    linkedinUrl: ""
+    youtubeUrl: "",
+    linkedinUrl: "",
+    googleMapUrl: ""
   });
   const [curriculumSettings, setCurriculumSettings] = useState(defaultCurriculumSettings);
   const [packageSettings, setPackageSettings] = useState(defaultPackageSettings);
