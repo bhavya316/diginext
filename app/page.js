@@ -1786,7 +1786,55 @@ function LeadCaptureForm({ courses, initialCourseSlug, initialRequestType, onSub
   );
 }
 
-function ActionModal({ courses, initialCourseSlug, initialRequestType, onClose, onSubmitLead }) {
+function ActionModal({ courses, initialCourseSlug, initialRequestType, modalData, brand, onClose, onSubmitLead }) {
+  if (modalData?.type === "THANK_YOU") {
+    const isBrochure = modalData.requestType === "brochure";
+    return (
+      <div className="overlay-panel" role="dialog" aria-modal="true">
+        <div className="overlay-scrim" onClick={onClose} />
+        <div className="modal-card" style={{ textAlign: "center", padding: "36px 28px", maxWidth: "460px" }}>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Close dialog">
+            ×
+          </button>
+          
+          <div style={{ width: "60px", height: "60px", background: "rgba(34, 197, 94, 0.12)", border: "2px solid #22c55e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#22c55e", fontSize: "26px", fontWeight: "bold" }}>
+            ✓
+          </div>
+          
+          <div className="mini-label" style={{ color: "#22c55e", fontWeight: "700", marginBottom: "6px" }}>Submission Received</div>
+          <h3 style={{ fontSize: "1.6rem", marginBottom: "12px", color: "#ffffff" }}>
+            {isBrochure ? "Here's Your Curriculum!" : "Thank You for Reaching Out!"}
+          </h3>
+          <p style={{ color: "var(--muted-text)", fontSize: "0.95rem", lineHeight: "1.6", maxWidth: "380px", margin: "0 auto 24px" }}>
+            {isBrochure
+              ? "Your course brochure has been opened in a new tab. Our admissions team will reach out to you shortly."
+              : "We have received your details! Our expert team will call you back shortly to guide you on your digital marketing journey."}
+          </p>
+
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            {brand?.supportPhone && (
+              <a
+                href={`tel:${brand.supportPhone}`}
+                className="primary-button"
+                style={{ padding: "10px 20px", textDecoration: "none", fontWeight: "600", fontSize: "0.9rem" }}
+              >
+                <span>Call {brand.supportPhone}</span>
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="ghost-button"
+              style={{ padding: "10px 20px", fontSize: "0.9rem" }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isBrochureRequest = initialRequestType === "BROCHURE";
 
   return (
@@ -1808,7 +1856,9 @@ function ActionModal({ courses, initialCourseSlug, initialRequestType, onClose, 
 function Footer({ footerSettings, brand, onOpenContact }) {
   const instagramUrl = footerSettings?.instagramUrl || "#";
   const facebookUrl = footerSettings?.facebookUrl || "#";
+  const youtubeUrl = footerSettings?.youtubeUrl || "#";
   const linkedinUrl = footerSettings?.linkedinUrl || "#";
+  const googleMapUrl = footerSettings?.googleMapUrl || "#";
 
   return (
     <footer className="site-footer" style={{ background: "#0a0a0a", color: "#f5f5f5", padding: "60px 0 40px", borderTop: "none" }}>
@@ -1832,27 +1882,33 @@ function Footer({ footerSettings, brand, onOpenContact }) {
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "24px" }}>
 
           {/* Socials */}
-          <div style={{ display: "flex", gap: "20px", flex: "1", minWidth: "150px" }}>
-            <a href={instagramUrl} target={instagramUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+          <div style={{ display: "flex", gap: "16px", flex: "1", minWidth: "150px", alignItems: "center" }}>
+            <a href={instagramUrl} target={instagramUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" aria-label="Instagram" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </a>
-            <a href={facebookUrl} target={facebookUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+            <a href={facebookUrl} target={facebookUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" aria-label="Facebook" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
             </a>
-            <a href={linkedinUrl} target={linkedinUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+            <a href={youtubeUrl} target={youtubeUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" aria-label="YouTube" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+            </a>
+            <a href={linkedinUrl} target={linkedinUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" aria-label="LinkedIn" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            </a>
+            <a href={googleMapUrl} target={googleMapUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" aria-label="Google Map" style={{ color: "#a3a3a3", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#fff"} onMouseOut={e => e.currentTarget.style.color = "#a3a3a3"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             </a>
           </div>
 
           {/* Center Text */}
           <div style={{ flex: "2", textAlign: "center", fontSize: "14px", color: "#a3a3a3", lineHeight: "1.6", minWidth: "250px" }}>
-            With ❤️ from a Designer to the<br />Designers of Tomorrow
+            Built with ❤️ by an Agency<br />for the Next Generation of Marketers
           </div>
 
           {/* Right Text */}
           <div style={{ flex: "1", textAlign: "right", fontSize: "14px", color: "#a3a3a3", lineHeight: "1.6", minWidth: "250px" }}>
-            ©2025 dot labs UI/UX school of tomorrow.<br />
-            All Rights Reserved
+            2026 DigineXt an Initivative by Digilligent<br />
+            ©️All Rights Reserved
           </div>
 
         </div>
@@ -1986,8 +2042,11 @@ export default function Page() {
       window.open(payload.brochureUrl, "_blank", "noopener,noreferrer");
     }
 
-    router.push(`/thank-you?phone=${encodeURIComponent(brand.supportPhone)}&request=${requestType}&course=${encodeURIComponent(payload.interest || "")}`);
-    setModal(null);
+    setModal({
+      type: "THANK_YOU",
+      requestType,
+      course: payload.interest
+    });
     return { ok: true };
   }
 
@@ -2008,7 +2067,7 @@ export default function Page() {
       <FaqSection faqSettings={faqSettings} fallbackFaqs={activeCourse.faqs} openFaq={openFaq} setOpenFaq={setOpenFaq} onOpenModal={(type) => setModal({ type, slug: activeCourse.slug })} />
       <Footer footerSettings={footerSettings} brand={brand} onOpenContact={openContactModal} />
       <MobileDock onOpenContact={openContactModal} />
-      {modal ? <ActionModal courses={courses} initialCourseSlug={modal.slug} initialRequestType={modal.type} onClose={() => setModal(null)} onSubmitLead={submitLead} /> : null}
+      {modal ? <ActionModal courses={courses} initialCourseSlug={modal.slug} initialRequestType={modal.type} modalData={modal} brand={brand} onClose={() => setModal(null)} onSubmitLead={submitLead} /> : null}
     </main>
   );
 }
